@@ -1,2 +1,3 @@
 (test
- (name math_practice))
+ (name math_expr)
+ (libraries ounit2 math_expr))
