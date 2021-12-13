@@ -14,6 +14,8 @@ jobs:
         ocaml-compiler:
           - 4.13.x
     runs-on: ${{ matrix.os }}
+    env:
+      OUNIT_CI: true
     steps:
       - name: Check out code
         uses: actions/checkout@v2
