@@ -4,3 +4,9 @@
 
 (name math_practice)
 (generate_opam_files true)
+
+(package
+ (name math_practice)
+ (depends
+   (ounit2 (>= 2.2.4))
+  ))
