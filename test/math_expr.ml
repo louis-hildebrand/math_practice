@@ -15,7 +15,7 @@ let string_of_expr_test0 _ =
 let string_of_expr_test1 _ =
   assert_equal
     ~printer: id
-    "-1"
+    "(-1)"
     (string_of_expr (Z (-1)))
 
 (* List and run tests ------------------------------------------------------- *)
