@@ -12,7 +12,7 @@ jobs:
           - ubuntu-latest
           - windows-latest
         ocaml-compiler:
-          - 4.13.x
+          - 4.05.0
     runs-on: ${{ matrix.os }}
     env:
       OUNIT_CI: true
