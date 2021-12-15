@@ -19,7 +19,7 @@ val seed: int -> unit
  * Generates a random expression with the given characteristics.
  *
  * min_depth: Minimum depth of the expression tree (inclusive)
- * max_depth: Maximum depth of the expression tree (exclusive)
+ * max_depth: Maximum depth of the expression tree (inclusive)
  * width: Maximum width of the expression tree (inclusive)
  * min_const: Minimum value for constants (inclusive)
  * max_const: Maximum value for constants (exclusive)
