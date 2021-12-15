@@ -12,7 +12,7 @@ let rec depth (e: expr): int =
   | Mul es -> 1 + (List.fold_left (fun acc e -> max acc (depth e)) 0 es)
   | Div (e1, e2) -> 1 + max (depth e1) (depth e2)
 
-(* tabulate start dest returns the list [origin; origin + 1; ...; dest - 1; dest] *)
+(* tabulate origin dest returns the list [origin; origin + 1; ...; dest - 1; dest] *)
 let rec tabulate (origin: int) (dest: int): int list =
   if origin = dest then [dest]
   else origin :: (tabulate (origin + 1) dest)
