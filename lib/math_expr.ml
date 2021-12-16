@@ -11,14 +11,11 @@ exception InvalidExpr of string
 
 (* Helper functions --------------------------------------------------------- *)
 let repeat (x: 'a) (n: int): 'a list =
-  if n < 0 then
-    raise (Invalid_argument "Number of repetitions cannot be negative.")
-  else
-    let rec repeat' n acc =
-      if n = 0 then acc
-      else repeat' (n - 1) (x :: acc)
-    in
-    repeat' n []
+  let rec repeat' n acc =
+    if n = 0 then acc
+    else repeat' (n - 1) (x :: acc)
+  in
+  repeat' n []
 
 (* Public functions --------------------------------------------------------- *)
 let init: unit -> unit =
