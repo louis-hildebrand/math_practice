@@ -9,4 +9,5 @@
  (name math_practice)
  (depends
    (ounit2 (>= 2.2.4))
+   (bisect_ppx (>= 2.7.0))
   ))

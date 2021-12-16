@@ -1,2 +1,3 @@
 (library
- (name math_expr))
+ (name math_expr)
+ (instrumentation (backend bisect_ppx)))
