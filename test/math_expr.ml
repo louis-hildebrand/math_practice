@@ -99,11 +99,8 @@ let next_rand_all_consts _ =
     else assert_failure (sprintf "Missing expression with constant %d." n)
   in
   List.iter f (tabulate min_const (max_const - 1))
-  
-(* string_of_expr: exceptions --------------------------------------------------------------------------------------- *)
-(* TODO *)
 
-(* string_of_expr --------------------------------------------------------------------------------------------------- *)
+(* string_of_expr: values ------------------------------------------------------------------------------------------- *)
 let string_of_expr_test0 _ =
   assert_equal
     ~printer: (fun x -> x)
@@ -115,6 +112,94 @@ let string_of_expr_test1 _ =
     ~printer: (fun x -> x)
     "(-1)"
     (string_of_expr (Z (-1)))
+
+let string_of_expr_test2 _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "1 + 2 + (-3)"
+    (string_of_expr (Add [Z 1; Z 2; Z (-3)]))
+
+let string_of_expr_test3 _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "1 - 2 - (-3)"
+    (string_of_expr (Sub [Z 1; Z 2; Z (-3)]))
+
+let string_of_expr_test4 _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "1 * 2 * (-3)"
+    (string_of_expr (Mul [Z 1; Z 2; Z (-3)]))
+
+let string_of_expr_test5 _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "2 / (-1)"
+    (string_of_expr (Div (Z 2, Z (-1))))
+
+let string_of_expr_test6 _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "1 + 2 * (-3)"
+    (string_of_expr (Add [Z 1; Mul [Z 2; Z (-3)]]))
+
+let string_of_expr_test7 _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "(1 + 2) * (-3)"
+    (string_of_expr (Mul [Add [Z 1; Z 2]; Z (-3)]))
+
+let string_of_expr_test8 _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "1 - 2 / 3"
+    (string_of_expr (Sub [Z 1; Div (Z 2, Z 3)]))
+
+let string_of_expr_test9 _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "(1 - 2) / 3"
+    (string_of_expr (Div (Sub [Z 1; Z 2], Z 3)))
+
+let string_of_expr_test10 _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "1 / 2 * 3"
+    (string_of_expr (Mul [Div (Z 1, Z 2); Z 3]))
+
+let string_of_expr_test11 _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "1 / (2 * 3)"
+    (string_of_expr (Div (Z 1, Mul [Z 2; Z 3])))
+
+let string_of_expr_test12 _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "1 - (2 + 3) - 4"
+    (string_of_expr (Sub [Z 1; Add [Z 2; Z 3]; Z 4]))
+
+let string_of_expr_test13 _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "1 + 2 - 3 + 4"
+    (string_of_expr (Add [Z 1; Sub [Z 2; Z 3]; Z 4]))
+
+(* string_of_expr: exceptions --------------------------------------------------------------------------------------- *)
+let string_of_expr_exc_test0 _ =
+  assert_raises
+    (InvalidExpr "Wrong number of arguments for operation Add.")
+    (fun () -> string_of_expr (Add [Z 1]))
+
+let string_of_expr_exc_test1 _ =
+  assert_raises
+    (InvalidExpr "Wrong number of arguments for operation Sub.")
+    (fun () -> string_of_expr (Sub [Z 1]))
+
+let string_of_expr_exc_test2 _ =
+  assert_raises
+    (InvalidExpr "Wrong number of arguments for operation Mul.")
+    (fun () -> string_of_expr (Mul [Z 1]))
 
 (* List and run tests ----------------------------------------------------------------------------------------------- *)
 let tests =
@@ -128,7 +213,21 @@ let tests =
     "next_rand_todo">:: (fun _ -> todo "Write next_rand tests.");
     "string_of_expr_test0">:: string_of_expr_test0;
     "string_of_expr_test1">:: string_of_expr_test1;
-    "string_of_expr_todo">:: (fun _ -> todo "Write string_of_expr tests.");
+    "string_of_expr_test2">:: string_of_expr_test2;
+    "string_of_expr_test3">:: string_of_expr_test3;
+    "string_of_expr_test4">:: string_of_expr_test4;
+    "string_of_expr_test5">:: string_of_expr_test5;
+    "string_of_expr_test6">:: string_of_expr_test6;
+    "string_of_expr_test7">:: string_of_expr_test7;
+    "string_of_expr_test8">:: string_of_expr_test8;
+    "string_of_expr_test9">:: string_of_expr_test9;
+    "string_of_expr_test10">:: string_of_expr_test10;
+    "string_of_expr_test11">:: string_of_expr_test11;
+    "string_of_expr_test12">:: string_of_expr_test12;
+    "string_of_expr_test13">:: string_of_expr_test13;
+    "string_of_expr_exc_test0">:: string_of_expr_exc_test0;
+    "string_of_expr_exc_test1">:: string_of_expr_exc_test1;
+    "string_of_expr_exc_test2">:: string_of_expr_exc_test2;
   ]
 
 let () =
