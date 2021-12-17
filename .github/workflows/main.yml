@@ -28,6 +28,6 @@ jobs:
       - name: Build
         run: opam exec -- dune build
       - name: Run tests
-        run: dune runtest --instrument-with bisect_ppx --force
+        run: opam exec -- dune runtest --instrument-with bisect_ppx --force
       - name: Display code coverage summary
-        run: bisect-ppx-report summary
+        run: opam exec -- bisect-ppx-report summary
