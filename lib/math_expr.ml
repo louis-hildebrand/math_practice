@@ -6,6 +6,14 @@ type expr =
   | Mul of expr list   (* e1 * e2 * e3 * ... *)
   | Div of expr * expr (* e1 / e2 *)
 
+type operation =
+  | OAdd
+  | OSub
+  | OMul
+  | ODiv
+
+type expr_context = operation * int (* Parent operation and position (starting at 0) *)
+
 (* Exceptions --------------------------------------------------------------- *)
 exception InvalidExpr of string
 
@@ -64,31 +72,59 @@ let next_rand (min_depth: int) (max_depth: int) (width: int) (min_const: int) (m
   else
     next_rand' min_depth max_depth width min_const max_const
 
-let rec string_of_expr (e: expr): string =
-  match e with
-  | Z (n) ->
-      if n < 0 then "(" ^ (string_of_int n) ^ ")"
-      else string_of_int n
-  | Add (e1::e2::es) ->
-      let init = "(" ^ (string_of_expr e1) ^ " + " ^ (string_of_expr e2) in
-      let append = fun acc e -> acc ^ " + " ^ (string_of_expr e) in
-      let final = List.fold_left append init es in
-      final ^ ")"
-  | Add _ ->
-      raise (InvalidExpr "Wrong number of arguments for operation Add.")
-  | Sub (e1::e2::es) ->
-      let init = "(" ^ (string_of_expr e1) ^ " - " ^ (string_of_expr e2) in
-      let append = fun acc e -> acc ^ " - " ^ (string_of_expr e) in
-      let final = List.fold_left append init es in
-      final ^ ")"
-  | Sub _ ->
-      raise (InvalidExpr "Wrong number of arguments for operation Sub.")
-  | Mul (e1::e2::es) ->
-      let init = "(" ^ (string_of_expr e1) ^ " * " ^ (string_of_expr e2) in
-      let append = fun acc e -> acc ^ " * " ^ (string_of_expr e) in
-      let final = List.fold_left append init es in
-      final ^ ")"
-  | Mul _ ->
-      raise (InvalidExpr "Wrong number of arguments for operation Mul.")
-  | Div (e1, e2) ->
-      "(" ^ (string_of_expr e1) ^ " / " ^ (string_of_expr e2) ^ ")"
+let string_of_expr (e: expr): string =
+  let rec string_of_expr' (ctxt: expr_context option) (e: expr): string =
+    match e with
+    | Z (n) ->
+        if n < 0 then "(" ^ (string_of_int n) ^ ")"
+        else string_of_int n
+    | Add (e1::e2::es) ->
+        let init = (string_of_expr' (Some (OAdd, 0)) e1) ^ " + " ^ (string_of_expr' (Some (OAdd, 1)) e2) in
+        let append = fun (i, acc) e -> (i + 1, acc ^ " + " ^ (string_of_expr' (Some (OAdd, i)) e)) in
+        let (_, final) = List.fold_left append (2, init) es in
+        (match ctxt with
+        | None
+        | Some (OAdd, _)
+        | Some (OSub, 0) -> final
+        | Some (OSub, _)
+        | Some (OMul, _)
+        | Some (ODiv, _) -> "(" ^ final ^ ")")
+    | Add _ ->
+        raise (InvalidExpr "Wrong number of arguments for operation Add.")
+    | Sub (e1::e2::es) ->
+        let init = (string_of_expr' (Some (OSub, 0)) e1) ^ " - " ^ (string_of_expr' (Some (OSub, 1)) e2) in
+        let append = fun (i, acc) e -> (i + 1, acc ^ " - " ^ (string_of_expr' (Some (OSub, i)) e)) in
+        let (_, final) = List.fold_left append (2, init) es in
+        (match ctxt with
+        | None
+        | Some (OAdd, _)
+        | Some (OSub, 0) -> final
+        | Some (OSub, _)
+        | Some (OMul, _)
+        | Some (ODiv, _) -> "(" ^ final ^ ")")
+    | Sub _ ->
+        raise (InvalidExpr "Wrong number of arguments for operation Sub.")
+    | Mul (e1::e2::es) ->
+        let init = (string_of_expr' (Some (OMul, 0)) e1) ^ " * " ^ (string_of_expr' (Some (OMul, 1)) e2) in
+        let append = fun (i, acc) e -> (i + 1, acc ^ " * " ^ (string_of_expr' (Some (OMul, i)) e)) in
+        let (_, final) = List.fold_left append (2, init) es in
+        (match ctxt with
+        | None
+        | Some (OAdd, _)
+        | Some (OSub, _)
+        | Some (OMul, _)
+        | Some (ODiv, 0) -> final
+        | Some (ODiv, _) -> "(" ^ final ^ ")")
+    | Mul _ ->
+        raise (InvalidExpr "Wrong number of arguments for operation Mul.")
+    | Div (e1, e2) ->
+        let final = (string_of_expr' (Some (ODiv, 0)) e1) ^ " / " ^ (string_of_expr' (Some (ODiv, 1)) e2) in
+        (match ctxt with
+        | None
+        | Some (OAdd, _)
+        | Some (OSub, _)
+        | Some (OMul, _)
+        | Some (ODiv, 0) -> final
+        | Some (ODiv, _) -> "(" ^ final ^ ")")
+  in
+  string_of_expr' None e
