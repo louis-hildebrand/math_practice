@@ -100,90 +100,91 @@ let next_rand_all_consts _ =
   in
   List.iter f (tabulate min_const (max_const - 1))
 
-(* string_of_expr: values ------------------------------------------------------------------------------------------- *)
-let string_of_expr_test0 _ =
+(* string_of_expr: single operations -------------------------------------------------------------------------------- *)
+(* Z (positive) *)
+let string_of_expr_z_positive _ =
   assert_equal
     ~printer: (fun x -> x)
     "1"
     (string_of_expr (Z 1))
 
-let string_of_expr_test1 _ =
+(* Z (negative) *)
+let string_of_expr_z_negative _ =
   assert_equal
     ~printer: (fun x -> x)
     "(-1)"
     (string_of_expr (Z (-1)))
 
-let string_of_expr_test2 _ =
+(* Add *)
+let string_of_expr_add _ =
   assert_equal
     ~printer: (fun x -> x)
     "1 + 2 + (-3)"
     (string_of_expr (Add [Z 1; Z 2; Z (-3)]))
 
-let string_of_expr_test3 _ =
+(* Sub *)
+let string_of_expr_sub _ =
   assert_equal
     ~printer: (fun x -> x)
     "1 - 2 - (-3)"
     (string_of_expr (Sub [Z 1; Z 2; Z (-3)]))
 
-let string_of_expr_test4 _ =
+(* Mul *)
+let string_of_expr_mul _ =
   assert_equal
     ~printer: (fun x -> x)
     "1 * 2 * (-3)"
     (string_of_expr (Mul [Z 1; Z 2; Z (-3)]))
 
-let string_of_expr_test5 _ =
+(* Div *)
+let string_of_expr_div _ =
   assert_equal
     ~printer: (fun x -> x)
     "2 / (-1)"
     (string_of_expr (Div (Z 2, Z (-1))))
 
-let string_of_expr_test6 _ =
+(* string_of_expr: order of operations ------------------------------------------------------------------------------ *)
+(* Add / Sub *)
+let string_of_expr_order_add_sub _ =
   assert_equal
     ~printer: (fun x -> x)
-    "1 + 2 * (-3)"
-    (string_of_expr (Add [Z 1; Mul [Z 2; Z (-3)]]))
+    "1 + 2 - 3 + 1 - (2 + 3)"
+    (string_of_expr (Add [Sub [Add [Z 1; Z 2]; Z 3]; Sub [Z 1; Add [Z 2; Z 3]]]))
 
-let string_of_expr_test7 _ =
+(* Add / Mul *)
+let string_of_expr_order_add_mul _ =
   assert_equal
     ~printer: (fun x -> x)
-    "(1 + 2) * (-3)"
-    (string_of_expr (Mul [Add [Z 1; Z 2]; Z (-3)]))
+    "1 * 2 + (1 + 2) * (3 + 4)"
+    (string_of_expr (Add [Mul [Z 1; Z 2]; Mul [Add [Z 1; Z 2]; Add [Z 3; Z 4]]]))
 
-let string_of_expr_test8 _ =
+(* Add / Div *)
+let string_of_expr_order_add_div _ =
   assert_equal
     ~printer: (fun x -> x)
-    "1 - 2 / 3"
-    (string_of_expr (Sub [Z 1; Div (Z 2, Z 3)]))
+    "1 / 2 + (1 + 2) / (3 + 4)"
+    (string_of_expr (Add [Div (Z 1, Z 2); Div (Add [Z 1; Z 2], Add [Z 3; Z 4])]))
 
-let string_of_expr_test9 _ =
+(* Sub / Mul *)
+let string_of_expr_order_sub_mul _ =
   assert_equal
     ~printer: (fun x -> x)
-    "(1 - 2) / 3"
-    (string_of_expr (Div (Sub [Z 1; Z 2], Z 3)))
+    "1 * 2 - (1 - 2) * (3 - 4)"
+    (string_of_expr (Sub [Mul [Z 1; Z 2]; Mul [Sub [Z 1; Z 2]; Sub [Z 3; Z 4]]]))
 
-let string_of_expr_test10 _ =
+(* Sub / Mul *)
+let string_of_expr_order_sub_div _ =
   assert_equal
     ~printer: (fun x -> x)
-    "1 / 2 * 3"
-    (string_of_expr (Mul [Div (Z 1, Z 2); Z 3]))
+    "1 / 2 - (1 - 2) / (3 - 4)"
+    (string_of_expr (Sub [Div (Z 1, Z 2); Div (Sub [Z 1; Z 2], Sub [Z 3; Z 4])]))
 
-let string_of_expr_test11 _ =
+(* Mul / Div *)
+let string_of_expr_order_mul_div _ =
   assert_equal
     ~printer: (fun x -> x)
-    "1 / (2 * 3)"
-    (string_of_expr (Div (Z 1, Mul [Z 2; Z 3])))
-
-let string_of_expr_test12 _ =
-  assert_equal
-    ~printer: (fun x -> x)
-    "1 - (2 + 3) - 4"
-    (string_of_expr (Sub [Z 1; Add [Z 2; Z 3]; Z 4]))
-
-let string_of_expr_test13 _ =
-  assert_equal
-    ~printer: (fun x -> x)
-    "1 + 2 - 3 + 4"
-    (string_of_expr (Add [Z 1; Sub [Z 2; Z 3]; Z 4]))
+    "1 / 2 * 1 * 2 / (3 * 4)"
+    (string_of_expr (Mul [Div (Z 1, Z 2); Div (Mul [Z 1; Z 2], Mul [Z 3; Z 4])]))
 
 (* string_of_expr: exceptions --------------------------------------------------------------------------------------- *)
 let string_of_expr_exc_test0 _ =
@@ -211,20 +212,18 @@ let tests =
     "next_rand_max_const">:: next_rand_max_const;
     "next_rand_all_consts">:: next_rand_all_consts;
     "next_rand_todo">:: (fun _ -> todo "Write next_rand tests.");
-    "string_of_expr_test0">:: string_of_expr_test0;
-    "string_of_expr_test1">:: string_of_expr_test1;
-    "string_of_expr_test2">:: string_of_expr_test2;
-    "string_of_expr_test3">:: string_of_expr_test3;
-    "string_of_expr_test4">:: string_of_expr_test4;
-    "string_of_expr_test5">:: string_of_expr_test5;
-    "string_of_expr_test6">:: string_of_expr_test6;
-    "string_of_expr_test7">:: string_of_expr_test7;
-    "string_of_expr_test8">:: string_of_expr_test8;
-    "string_of_expr_test9">:: string_of_expr_test9;
-    "string_of_expr_test10">:: string_of_expr_test10;
-    "string_of_expr_test11">:: string_of_expr_test11;
-    "string_of_expr_test12">:: string_of_expr_test12;
-    "string_of_expr_test13">:: string_of_expr_test13;
+    "string_of_expr_z_positive">:: string_of_expr_z_positive;
+    "string_of_expr_z_negative">:: string_of_expr_z_negative;
+    "string_of_expr_add">:: string_of_expr_add;
+    "string_of_expr_sub">:: string_of_expr_sub;
+    "string_of_expr_mul">:: string_of_expr_mul;
+    "string_of_expr_div">:: string_of_expr_div;
+    "string_of_expr_order_add_sub">:: string_of_expr_order_add_sub;
+    "string_of_expr_order_add_mul">:: string_of_expr_order_add_mul;
+    "string_of_expr_order_add_div">:: string_of_expr_order_add_div;
+    "string_of_expr_order_sub_mul">:: string_of_expr_order_sub_mul;
+    "string_of_expr_order_sub_div">:: string_of_expr_order_sub_div;
+    "string_of_expr_order_mul_div">:: string_of_expr_order_mul_div;
     "string_of_expr_exc_test0">:: string_of_expr_exc_test0;
     "string_of_expr_exc_test1">:: string_of_expr_exc_test1;
     "string_of_expr_exc_test2">:: string_of_expr_exc_test2;
