@@ -53,14 +53,14 @@ and next_args (min_depth: int) (max_depth: int) (width: int) (min_const: int) (m
 let next_rand (min_depth: int) (max_depth: int) (width: int) (min_const: int) (max_const: int): expr =
   if min_depth < 0 then
     raise (Invalid_argument "Minimum depth of expression cannot be negative.")
-  else if min_depth > max_depth then
-    raise (Invalid_argument "Minimum depth of expression must be less than or equal to maximum depth.")
   else if max_depth < 0 then
     raise (Invalid_argument "Maximum depth of expression cannot be negative.")
+  else if min_depth > max_depth then
+    raise (Invalid_argument "Minimum depth of expression must be less than or equal to maximum depth.")
   else if width < 2 then
-    raise (Invalid_argument "width of expression must be at least 2.")
+    raise (Invalid_argument "Width of expression must be at least 2.")
   else if min_const >= max_const then
-    raise (Invalid_argument "min must be less than max.")
+    raise (Invalid_argument "Minimum constant must be less than maximum constant.")
   else
     next_rand' min_depth max_depth width min_const max_const
 

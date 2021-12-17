@@ -17,9 +17,6 @@ let rec tabulate (origin: int) (dest: int): int list =
   if origin = dest then [dest]
   else origin :: (tabulate (origin + 1) dest)
 
-(* next_rand: exceptions -------------------------------------------------------------------------------------------- *)
-(* TODO *)
-
 (* next_rand: values ------------------------------------------------------------------------------------------------ *)
 let min_depth = 1
 let max_depth = 3
@@ -65,7 +62,7 @@ let next_rand_max_depth _ =
                  - expression: %s\n \
                  - expected max. depth: %d\n \
                  - actual depth: %d"
-                s (string_of_expr e) max_depth (depth e))
+               s (string_of_expr e) max_depth (depth e))
 
 let next_rand_all_depths _ =
   (* Asserts a failure if there are no expressions with depth n *)
@@ -77,7 +74,25 @@ let next_rand_all_depths _ =
   in
   List.iter f (tabulate min_depth max_depth)
 
-(* TODO: Check width *)
+let next_rand_max_width _ =
+  (* Asserts a failure if there is any operation in e with more than w arguments *)
+  let rec f w e =
+    match e with
+    | Z _ -> ()
+    | Add es
+    | Sub es
+    | Mul es ->
+        if List.length es > w then 
+          assert_failure (sprintf "Found expression that is too wide:\n \
+             - expression: %s\n \
+             - expected max. width: %d\n \
+             - actual width: %d"
+            (string_of_expr e) width (List.length es))
+        else
+          List.iter (f w) es
+    | Div (e1, e2) -> f w e1; f w e2
+  in
+  List.iter (fun (_, e) -> f width e) random_exprs
 
 let next_rand_min_const _ =
   let below_min_exprs = List.filter (fun n -> n < min_const) random_consts in
@@ -99,6 +114,32 @@ let next_rand_all_consts _ =
     else assert_failure (sprintf "Missing expression with constant %d." n)
   in
   List.iter f (tabulate min_const (max_const - 1))
+
+(* next_rand: exceptions -------------------------------------------------------------------------------------------- *)
+let next_rand_exc_min_depth_invalid _ =
+  assert_raises
+    (Invalid_argument "Minimum depth of expression cannot be negative.")
+    (fun () -> next_rand (-1) 3 2 0 1)
+
+let next_rand_exc_max_depth_invalid _ =
+  assert_raises
+    (Invalid_argument "Maximum depth of expression cannot be negative.")
+    (fun () -> next_rand 0 (-1) 2 0 1)
+
+let next_rand_exc_min_depth_greater_than_max_depth _ =
+  assert_raises
+    (Invalid_argument "Minimum depth of expression must be less than or equal to maximum depth.")
+    (fun () -> next_rand 1 0 2 0 1)
+
+let next_rand_exc_width_invalid _ =
+  assert_raises
+    (Invalid_argument "Width of expression must be at least 2.")
+    (fun () -> next_rand 0 0 1 0 1)
+
+let next_rand_exc_min_const_equal_max_const _ =
+  assert_raises
+    (Invalid_argument "Minimum constant must be less than maximum constant.")
+    (fun () -> next_rand 0 0 2 0 0)
 
 (* string_of_expr: single operations -------------------------------------------------------------------------------- *)
 (* Z (positive) *)
@@ -208,10 +249,15 @@ let tests =
     "next_rand_min_depth">:: next_rand_min_depth;
     "next_rand_max_depth">:: next_rand_max_depth;
     "next_rand_all_depths">:: next_rand_all_depths;
+    "next_rand_max_width">:: next_rand_max_width;
     "next_rand_min_const">:: next_rand_min_const;
     "next_rand_max_const">:: next_rand_max_const;
     "next_rand_all_consts">:: next_rand_all_consts;
-    "next_rand_todo">:: (fun _ -> todo "Write next_rand tests.");
+    "next_rand_exc_min_depth_invalid">:: next_rand_exc_min_depth_invalid;
+    "next_rand_exc_max_depth_invalid">:: next_rand_exc_max_depth_invalid;
+    "next_rand_exc_min_depth_greater_than_max_depth">:: next_rand_exc_min_depth_greater_than_max_depth;
+    "next_rand_exc_width_invalid">:: next_rand_exc_width_invalid;
+    "next_rand_exc_min_const_equal_max_const">:: next_rand_exc_min_const_equal_max_const;
     "string_of_expr_z_positive">:: string_of_expr_z_positive;
     "string_of_expr_z_negative">:: string_of_expr_z_negative;
     "string_of_expr_add">:: string_of_expr_add;
