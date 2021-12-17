@@ -29,5 +29,8 @@ jobs:
         run: opam exec -- dune build
       - name: Run tests
         run: opam exec -- dune runtest --instrument-with bisect_ppx --force
-      - name: Display code coverage summary
-        run: opam exec -- bisect-ppx-report summary
+      - name: Send test coverage report to Coveralls
+        run: opam exec -- bisect-ppx-report send-to Coveralls
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+          PULL_REQUEST_NUMBER: ${{ github.event.number }}
