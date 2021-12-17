@@ -32,5 +32,5 @@ jobs:
       - name: Send test coverage report to Coveralls
         run: opam exec -- bisect-ppx-report send-to Coveralls
         env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST_NUMBER: ${{ github.event.number }}
