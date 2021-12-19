@@ -1,3 +1,5 @@
+open Printf
+
 (* Types -------------------------------------------------------------------- *)
 type expr =
   | Z of int           (* Integer *)
@@ -16,6 +18,7 @@ type expr_context = operation * int (* Parent operation and position (starting a
 
 (* Exceptions --------------------------------------------------------------- *)
 exception InvalidExpr of string
+exception Undefined of string
 
 (* Helper functions --------------------------------------------------------- *)
 let repeat (x: 'a) (n: int): 'a list =
@@ -128,3 +131,18 @@ let string_of_expr (e: expr): string =
         | Some (ODiv, _) -> "(" ^ final ^ ")")
   in
   string_of_expr' None e
+
+let rec eval (e: expr): float =
+  match e with
+  | Z (n) -> float_of_int n
+  | Add (e1::e2::es) -> List.fold_left (fun acc e -> acc +. eval e) (eval e1 +. eval e2) es
+  | Add _ -> raise (InvalidExpr "Wrong number of arguments for operation Add.")
+  | Sub (e1::e2::es) -> List.fold_left (fun acc e -> acc -. eval e) (eval e1 -. eval e2) es
+  | Sub _ -> raise (InvalidExpr "Wrong number of arguments for operation Sub.")
+  | Mul (e1::e2::es) -> List.fold_left (fun acc e -> acc *. eval e) (eval e1 *. eval e2) es
+  | Mul _ -> raise (InvalidExpr "Wrong number of arguments for operation Mul.")
+  | Div (e1, e2) ->
+      let denom = eval e2 in
+      if denom = 0.0 then raise (Undefined (sprintf "Attempt to divide by zero in expression %s." (string_of_expr e)))
+      else let numer = eval e1 in
+      numer /. denom
