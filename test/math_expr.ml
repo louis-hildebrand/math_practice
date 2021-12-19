@@ -271,6 +271,53 @@ let string_of_expr_exc_test2 _ =
     (InvalidExpr "Wrong number of arguments for operation Mul.")
     (fun () -> string_of_expr (Mul [Z 1]))
 
+(* eval: values ----------------------------------------------------------------------------------------------------- *)
+let eval_int _ =
+  assert_equal
+    1.0
+    (eval (Z 1))
+
+let eval_add _ =
+  assert_equal
+    8.0
+    (eval (Add [Z (-1); Z 2; Add [Z 3; Z 4]]))
+
+let eval_sub _ =
+  assert_equal
+    4.0
+    (eval (Sub [Z 1; Z (-2); Sub [Z 3; Z 4]]))
+
+let eval_mul _ =
+  assert_equal
+    24.0
+    (eval (Mul [Z 1; Z 2; Mul [Z 3; Z 4]]))
+
+let eval_div _ =
+  assert_equal
+    0.5
+    (eval (Div (Z 1, Div (Z 2, Z 1))))
+
+(* eval: exceptions ------------------------------------------------------------------------------------------------- *)
+let eval_exc_div_by_zero _ =
+  assert_raises
+    (Undefined "Attempt to divide by zero in expression 1 / (1 - 1).")
+    (fun () -> eval (Div (Z 1, Sub [Z 1; Z 1])))
+
+let eval_exc_add_num_args _ =
+  assert_raises
+    (InvalidExpr "Wrong number of arguments for operation Add.")
+    (fun () -> eval (Add [Z 1]))
+
+let eval_exc_sub_num_args _ =
+  assert_raises
+    (InvalidExpr "Wrong number of arguments for operation Sub.")
+    (fun () -> eval (Sub [Z 1]))
+
+let eval_exc_mul_num_args _ =
+  assert_raises
+    (InvalidExpr "Wrong number of arguments for operation Mul.")
+    (fun () -> eval (Mul [Z 1]))
+
 (* List and run tests ----------------------------------------------------------------------------------------------- *)
 let tests =
   "math_expr_tests">::: [
@@ -305,6 +352,15 @@ let tests =
     "string_of_expr_exc_test0">:: string_of_expr_exc_test0;
     "string_of_expr_exc_test1">:: string_of_expr_exc_test1;
     "string_of_expr_exc_test2">:: string_of_expr_exc_test2;
+    "eval_int">:: eval_int;
+    "eval_add">:: eval_add;
+    "eval_sub">:: eval_sub;
+    "eval_mul">:: eval_mul;
+    "eval_div">:: eval_div;
+    "eval_exc_div_by_zero">:: eval_exc_div_by_zero;
+    "eval_exc_add_num_args">:: eval_exc_add_num_args;
+    "eval_exc_sub_num_args">:: eval_exc_sub_num_args;
+    "eval_exc_mul_num_args">:: eval_exc_mul_num_args;
   ]
 
 let () =
