@@ -9,6 +9,9 @@ type expr =
 (** Expression is badly formed. *)
 exception InvalidExpr of string
 
+(** Expression involves an invalid operation (e.g. division by zero) *)
+exception Undefined of string
+
 (** Initializes the random number generator. *)
 val init: unit -> unit
 
@@ -25,6 +28,9 @@ val seed: int -> unit
  * max_const: Maximum value for constants (exclusive)
  *)
 val next_rand: int -> int -> int -> int -> int -> expr
+
+(** Evaluates the given expression *)
+val eval: expr -> float
 
 (** Converts the given expression to a string. *)
 val string_of_expr: expr -> string

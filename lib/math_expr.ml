@@ -16,6 +16,7 @@ type expr_context = operation * int (* Parent operation and position (starting a
 
 (* Exceptions --------------------------------------------------------------- *)
 exception InvalidExpr of string
+exception Undefined of string
 
 (* Helper functions --------------------------------------------------------- *)
 let repeat (x: 'a) (n: int): 'a list =
@@ -71,6 +72,10 @@ let next_rand (min_depth: int) (max_depth: int) (width: int) (min_const: int) (m
     raise (Invalid_argument "Minimum constant must be less than maximum constant.")
   else
     next_rand' min_depth max_depth width min_const max_const
+
+exception NotImplemented
+let eval (_: expr): float =
+  raise NotImplemented
 
 let string_of_expr (e: expr): string =
   let rec string_of_expr' (ctxt: expr_context option) (e: expr): string =
