@@ -29,8 +29,8 @@ val seed: int -> unit
  *)
 val next_rand: int -> int -> int -> int -> int -> expr
 
-(** Evaluates the given expression *)
-val eval: expr -> float
-
 (** Converts the given expression to a string. *)
 val string_of_expr: expr -> string
+
+(** Evaluates the given expression *)
+val eval: expr -> float
