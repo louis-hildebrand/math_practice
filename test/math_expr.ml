@@ -17,6 +17,21 @@ let rec tabulate (origin: int) (dest: int): int list =
   if origin = dest then [dest]
   else origin :: (tabulate (origin + 1) dest)
 
+let rec has_div_by_zero (e: expr): bool =
+  match e with
+  | Z _ -> false
+  | Add es
+  | Sub es
+  | Mul es -> List.exists (fun arg -> has_div_by_zero arg) es
+  | Div (e1, e2) -> has_div_by_zero e1 || has_div_by_zero e2 || eval e2 = 0.0
+
+let repeat (x: 'a) (n: int): 'a list =
+  let rec repeat' n acc =
+    if n = 0 then acc
+    else repeat' (n - 1) (x :: acc)
+  in
+  repeat' n []
+
 (* next_rand: values ------------------------------------------------------------------------------------------------ *)
 let min_depth = 1
 let max_depth = 3
@@ -114,6 +129,29 @@ let next_rand_all_consts _ =
     else assert_failure (sprintf "Missing expression with constant %d." n)
   in
   List.iter f (tabulate min_const (max_const - 1))
+
+let next_rand_no_div_by_zero1 _ =
+  let f (_, e) =
+    if has_div_by_zero e then assert_failure (sprintf "Found expression with division by zero: %s." (string_of_expr e))
+    else ()
+  in
+  List.iter f random_exprs
+
+let next_rand_no_div_by_zero2 _ =
+  let random_exprs = List.map (fun () -> next_rand 2 2 2 0 1) (repeat () 100) in
+  let f e =
+    if has_div_by_zero e then assert_failure (sprintf "Found expression with division by zero: %s." (string_of_expr e))
+    else ()
+  in
+  List.iter f random_exprs
+
+let next_rand_no_div_by_zero3 _ =
+  let random_exprs = List.map (fun () -> next_rand 2 2 2 0 2) (repeat () 100) in
+  let f e =
+    if has_div_by_zero e then assert_failure (sprintf "Found expression with division by zero: %s." (string_of_expr e))
+    else ()
+  in
+  List.iter f random_exprs
 
 (* next_rand: exceptions -------------------------------------------------------------------------------------------- *)
 let next_rand_exc_min_depth_invalid _ =
@@ -328,6 +366,9 @@ let tests =
     "next_rand_min_const">:: next_rand_min_const;
     "next_rand_max_const">:: next_rand_max_const;
     "next_rand_all_consts">:: next_rand_all_consts;
+    "next_rand_no_div_by_zero1">:: next_rand_no_div_by_zero1;
+    "next_rand_no_div_by_zero2">:: next_rand_no_div_by_zero2;
+    "next_rand_no_div_by_zero3">:: next_rand_no_div_by_zero3;
     "next_rand_exc_min_depth_invalid">:: next_rand_exc_min_depth_invalid;
     "next_rand_exc_max_depth_invalid">:: next_rand_exc_max_depth_invalid;
     "next_rand_exc_min_depth_greater_than_max_depth">:: next_rand_exc_min_depth_greater_than_max_depth;
