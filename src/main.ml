@@ -7,12 +7,15 @@ let rec tabulate (origin: int) (dest: int): int list =
   else origin :: (tabulate (origin + 1) dest)
 
 (* Command-line argument parsing ------------------------------------------------------------------------------------ *)
-let usage_msg = "math_practice [<options>] <subcommand> [<subcommand-options>]"
+let usage_msg = 
+  "math_practice [<options>] <subcommand> [<subcommand-options>] \
+   Valid subcommands:
+   - arithmetic  Practice order of operations and basic arithmetic"
 let silent = ref false
 let num_questions = ref 10
 let speclist = ref [
-  ("-s", Arg.Set silent, "Do not print seed");
-  ("--silent", Arg.Set silent, "Do not print seed");
+  ("-q", Arg.Set silent, "Do not print seed or question numbers");
+  ("--quiet", Arg.Set silent, "Do not print seed or question numbers");
   ("-n", Arg.Set_int num_questions, "Number of questions to generate");
   ("--num-questions", Arg.Set_int num_questions, "Number of questions to generate");
 ]
@@ -20,8 +23,8 @@ let anon_args = ref []
 let subcommand = ref None
 let set_subcommand (arg: string): unit =
   match arg with
-  | "order" ->
-      subcommand := Some "order"
+  | "arithmetic" ->
+      subcommand := Some "arithmetic"
   | _ -> raise (Arg.Bad (sprintf "Invalid subcommand %s" arg))
 
 let anon_fun arg =
@@ -35,7 +38,7 @@ let print_error (error_msg: string): unit =
   exit 1
 
 (* Subcommands ------------------------------------------------------------------------------------------------------ *)
-let generate_order_of_operations_questions (): unit =
+let generate_arithmetic_questions (): unit =
   let f silent n =
     if not silent then (printf "%d. " n) else ();
     printf "%s\n" (string_of_expr (next_rand 1 2 2 (-99) 100))
@@ -47,15 +50,15 @@ let generate_order_of_operations_questions (): unit =
   seed s;
   List.iter (f !silent) (tabulate 1 !num_questions)
 
-let order_of_operations (): unit =
+let arithmetic (): unit =
   if !num_questions <= 0 then
     print_error (sprintf "Invalid number of questions %d" !num_questions)
   else
-    generate_order_of_operations_questions ()
+    generate_arithmetic_questions ()
 
 let invoke_subcommand (): unit =
   match !subcommand with
-  | Some "order" -> order_of_operations ()
+  | Some "arithmetic" -> arithmetic ()
   | Some s -> print_error (sprintf "Invalid subcommand %s" s)
   | None -> print_error (sprintf "No subcommand provided")
 
