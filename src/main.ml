@@ -8,14 +8,17 @@ let rec tabulate (origin: int) (dest: int): int list =
 
 (* Command-line argument parsing ------------------------------------------------------------------------------------ *)
 let usage_msg = 
-  "math_practice [<options>] <subcommand> [<subcommand-options>] \
-   Valid subcommands:
-   - arithmetic  Practice order of operations and basic arithmetic"
-let silent = ref false
+  "Usage: math_practice [<options>] <subcommand> [<subcommand-options>]\n\
+  \       Valid subcommands:\n\
+  \       - arithmetic  Practice order of operations and basic arithmetic\n"
+
+(* Global options *)
+let quiet = ref false
 let num_questions = ref 10
+
 let speclist = ref [
-  ("-q", Arg.Set silent, "Do not print seed or question numbers");
-  ("--quiet", Arg.Set silent, "Do not print seed or question numbers");
+  ("-q", Arg.Set quiet, "Do not print seed or question numbers");
+  ("--quiet", Arg.Set quiet, "Do not print seed or question numbers");
   ("-n", Arg.Set_int num_questions, "Number of questions to generate");
   ("--num-questions", Arg.Set_int num_questions, "Number of questions to generate");
 ]
@@ -33,32 +36,29 @@ let anon_fun arg =
   | Some _ -> anon_args := arg :: !anon_args
 
 let print_error (error_msg: string): unit =
-  printf "%s.\n" error_msg;
+  eprintf "%s.\n" error_msg;
   Arg.usage !speclist usage_msg;
   exit 1
 
 (* Subcommands ------------------------------------------------------------------------------------------------------ *)
-let generate_arithmetic_questions (): unit =
-  let f silent n =
-    if not silent then (printf "%d. " n) else ();
+let arithmetic quiet num_questions: unit =
+  let f quiet n =
+    if not quiet then (printf "%d. " n) else ();
     printf "%s\n" (string_of_expr (next_rand 1 2 2 (-99) 100))
   in
   Random.self_init ();
   (* 1073741823 = 2^30 - 1 *)
   let s = Random.int 1073741823 in
-  if not !silent then (printf "Seed: %d\n" s) else ();
+  if not quiet then (printf "Seed: %d\n" s) else ();
   seed s;
-  List.iter (f !silent) (tabulate 1 !num_questions)
-
-let arithmetic (): unit =
-  if !num_questions <= 0 then
-    print_error (sprintf "Invalid number of questions %d" !num_questions)
-  else
-    generate_arithmetic_questions ()
+  List.iter (f quiet) (tabulate 1 num_questions)
 
 let invoke_subcommand (): unit =
+  let quiet = !quiet in
+  let num_questions = !num_questions in
+  if num_questions < 0 then print_error (sprintf "Invalid number of questions %d" num_questions);
   match !subcommand with
-  | Some "arithmetic" -> arithmetic ()
+  | Some "arithmetic" -> arithmetic quiet num_questions
   | Some s -> print_error (sprintf "Invalid subcommand %s" s)
   | None -> print_error (sprintf "No subcommand provided")
 
