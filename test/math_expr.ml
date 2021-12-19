@@ -145,6 +145,14 @@ let next_rand_no_div_by_zero2 _ =
   in
   List.iter f random_exprs
 
+let next_rand_no_div_by_zero3 _ =
+  let random_exprs = List.map (fun () -> next_rand 2 2 2 0 2) (repeat () 100) in
+  let f e =
+    if has_div_by_zero e then assert_failure (sprintf "Found expression with division by zero: %s." (string_of_expr e))
+    else ()
+  in
+  List.iter f random_exprs
+
 (* next_rand: exceptions -------------------------------------------------------------------------------------------- *)
 let next_rand_exc_min_depth_invalid _ =
   assert_raises
@@ -360,6 +368,7 @@ let tests =
     "next_rand_all_consts">:: next_rand_all_consts;
     "next_rand_no_div_by_zero1">:: next_rand_no_div_by_zero1;
     "next_rand_no_div_by_zero2">:: next_rand_no_div_by_zero2;
+    "next_rand_no_div_by_zero3">:: next_rand_no_div_by_zero3;
     "next_rand_exc_min_depth_invalid">:: next_rand_exc_min_depth_invalid;
     "next_rand_exc_max_depth_invalid">:: next_rand_exc_max_depth_invalid;
     "next_rand_exc_min_depth_greater_than_max_depth">:: next_rand_exc_min_depth_greater_than_max_depth;
