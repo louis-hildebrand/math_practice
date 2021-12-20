@@ -356,6 +356,73 @@ let eval_exc_mul_num_args _ =
     (InvalidExpr "Wrong number of arguments for operation Mul.")
     (fun () -> eval (Mul [Z 1]))
 
+(* simplify: values ------------------------------------------------------------------------------------------------- *)
+let simplify_int _ =
+  assert_equal
+    (Z 1)
+    (simplify (Z 1))
+
+let simplify_add0 _ =
+  assert_equal
+    (Z 2)
+    (simplify (Add [Z (-4); Z 1; Z 5]))
+
+let simplify_add1 _ =
+  assert_equal
+    (Div (Z 4, Z 5))
+    (simplify (Add [Div (Z 7, Z 10); Div (Z 1, Z 10)]))
+
+let simplify_add2 _ =
+  assert_equal
+    (Z 2)
+    (simplify (Add [Z (-5); Mul [Z 2; Z 3]; Div (Z 1, Z 2); Div (Z 1, Z 2)]))
+
+let simplify_sub0 _ =
+  assert_equal
+    (Z 2)
+    (simplify (Sub [Z 5; Z 4; Z (-1)]))
+
+let simplify_sub1 _ =
+  assert_equal
+    (Div (Z 1, Z 5))
+    (simplify (Sub [Div (Z 3, Z 10); Div (Z 1, Z 10)]))
+
+let simplify_sub2 _ =
+  assert_equal
+    (Z 1)
+    (simplify (Sub [Add [Z 1; Z 2]; Div (Z 1, Z 2); Div (Z 3, Z 2)]))
+
+let simplify_mul0 _ =
+  assert_equal
+    (Z (-6))
+    (simplify (Mul [Z 1; Z 2; Z (-3)]))
+
+let simplify_mul1 _ =
+  assert_equal
+    (Div (Z 1, Z 3))
+    (simplify (Mul [Div (Z 1, Z 2); Div (Z 2, Z 3)]))
+
+let simplify_mul2 _ =
+  assert_equal
+    (Z 3)
+    (simplify (Mul [Add [Z 1; Z 2]; Div (Z 5, Z 3); Div (Z 9, Z 15)]))
+
+let simplify_div0 _ =
+  assert_equal
+    (Z 2)
+    (simplify (Div (Z 4, Z 2)))
+
+let simplify_div1 _ =
+  assert_equal
+    (Div (Z 2, Z 3))
+    (simplify (Div (Add [Z 2; Z 4], Mul [Z 3; Z 3])))
+
+(* simplify: exceptions --------------------------------------------------------------------------------------------- *)
+let simplify_exc_div_by_zero _ =
+  assert_raises
+    (Undefined "Attempt to divide by zero in expression 1 / (1 - 1).")
+    (fun () -> simplify (Div (Z 1, Sub [Z 1; Z 1])))
+
 (* List and run tests ----------------------------------------------------------------------------------------------- *)
 let tests =
   "math_expr_tests">::: [
@@ -402,6 +469,19 @@ let tests =
     "eval_exc_add_num_args">:: eval_exc_add_num_args;
     "eval_exc_sub_num_args">:: eval_exc_sub_num_args;
     "eval_exc_mul_num_args">:: eval_exc_mul_num_args;
+    "simplify_int">:: simplify_int;
+    "simplify_add0">:: simplify_add0;
+    "simplify_add1">:: simplify_add1;
+    "simplify_add2">:: simplify_add2;
+    "simplify_sub0">:: simplify_sub0;
+    "simplify_sub1">:: simplify_sub1;
+    "simplify_sub2">:: simplify_sub2;
+    "simplify_mul0">:: simplify_mul0;
+    "simplify_mul1">:: simplify_mul1;
+    "simplify_mul2">:: simplify_mul2;
+    "simplify_div0">:: simplify_div0;
+    "simplify_div1">:: simplify_div1;
+    "simplify_exc_div_by_zero">:: simplify_exc_div_by_zero;
   ]
 
 let () =
