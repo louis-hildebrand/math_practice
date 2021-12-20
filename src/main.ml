@@ -50,7 +50,7 @@ let set_subcommand (arg: string): unit =
       subcommand := Some "arithmetic"
   | _ -> print_error (sprintf "Invalid subcommand %s" arg)
 
-let anon_fun arg =
+let anon_fun (arg: string): unit =
   match !subcommand with
   | None -> set_subcommand arg
   | Some _ -> anon_args := arg :: !anon_args
@@ -60,7 +60,7 @@ let generate_arithmetic_questions (num_questions: int) (sd: int): expr list =
   seed sd;
   List.map (fun () -> next_rand 1 1 2 (-99) 100) (repeat () num_questions)
 
-let ask_arithmetic quiet num_questions sd: unit =
+let ask_arithmetic (quiet: bool) (num_questions: int) (sd: int): unit =
   let print_question n e =
     if not quiet then (printf "%d. " n) else ();
     printf "%s\n" (string_of_expr e)
