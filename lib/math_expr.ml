@@ -162,3 +162,7 @@ let next_rand (min_depth: int) (max_depth: int) (width: int) (min_const: int) (m
     raise (Invalid_argument "Minimum constant must be less than maximum constant.")
   else
     next_rand' min_depth max_depth width min_const max_const
+
+exception NotImplemented
+let simplify (_: expr): expr =
+  raise NotImplemented

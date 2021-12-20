@@ -34,3 +34,6 @@ val string_of_expr: expr -> string
 
 (** Evaluates the given expression *)
 val eval: expr -> float
+
+(** Simplifies the given expression *)
+val simplify: expr -> expr
