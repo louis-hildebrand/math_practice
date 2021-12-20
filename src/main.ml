@@ -79,6 +79,16 @@ let answer_arithmetic (quiet: bool) (num_questions: int) (sd: int): unit =
   let n = ref 1 in
   List.iter (fun e -> print_answer !n e; n := !n + 1) questions
 
+let arithmetic (quiet: bool) (num_questions: int) (sd: int) (show_answers: bool) (anon_args: string list): unit =
+  if List.length anon_args != 0 then
+    let args_str = List.fold_left (sprintf "%s,%s") (List.hd anon_args) (List.tl anon_args) in
+    let error_msg = "Unrecognized argument(s) [" ^ args_str ^ "]" in
+    print_error error_msg
+  else if show_answers then
+    answer_arithmetic quiet num_questions sd
+  else
+    ask_arithmetic quiet num_questions sd
+
 let invoke_subcommand (): unit =
   let quiet = !quiet in
   let num_questions = !num_questions in
@@ -90,11 +100,10 @@ let invoke_subcommand (): unit =
     | None, true -> print_error ("Seed is required when viewing answers. Provide a seed using the -s option")
     | Some s, _ -> s
   in
-  match !subcommand, show_answers with
-  | Some "arithmetic", false -> ask_arithmetic quiet num_questions seed
-  | Some "arithmetic", true -> answer_arithmetic quiet num_questions seed
-  | Some s, _ -> print_error (sprintf "Invalid subcommand %s" s)
-  | None, _ -> print_error (sprintf "No subcommand provided")
+  match !subcommand with
+  | Some "arithmetic" -> arithmetic quiet num_questions seed show_answers !anon_args
+  | Some s -> print_error (sprintf "Invalid subcommand %s" s)
+  | None -> print_error (sprintf "No subcommand provided")
 
 let () =
   Arg.parse_dynamic speclist anon_fun usage_msg;
