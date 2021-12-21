@@ -372,8 +372,8 @@ let simplify_add0 _ =
 let simplify_add1 _ =
   assert_equal
     ~printer: string_of_expr
-    (Div (Z 4, Z 5))
-    (simplify (Add [Div (Z 7, Z 10); Div (Z 1, Z 10)]))
+    (Div (Z 9, Z 5))
+    (simplify (Add [Div (Z 7, Z 10); Z 1; Div (Z 1, Z 10)]))
 
 let simplify_add2 _ =
   assert_equal
@@ -390,8 +390,8 @@ let simplify_sub0 _ =
 let simplify_sub1 _ =
   assert_equal
     ~printer: string_of_expr
-    (Div (Z 1, Z 5))
-    (simplify (Sub [Div (Z 3, Z 10); Div (Z 1, Z 10)]))
+    (Div (Z (-4), Z 5))
+    (simplify (Sub [Div (Z 3, Z 10); Z 1; Div (Z 1, Z 10)]))
 
 let simplify_sub2 _ =
   assert_equal
@@ -408,8 +408,8 @@ let simplify_mul0 _ =
 let simplify_mul1 _ =
   assert_equal
     ~printer: string_of_expr
-    (Div (Z 1, Z 3))
-    (simplify (Mul [Div (Z 1, Z 2); Div (Z 2, Z 3)]))
+    (Div (Z 5, Z 3))
+    (simplify (Mul [Div (Z 1, Z 2); Z 5; Div (Z 2, Z 3)]))
 
 let simplify_mul2 _ =
   assert_equal
@@ -427,7 +427,7 @@ let simplify_div1 _ =
   assert_equal
     ~printer: string_of_expr
     (Div (Z 2, Z 3))
-    (simplify (Div (Add [Z 2; Z 4], Mul [Z 3; Z 3])))
+    (simplify (Div (Div (Z 1, Div (Z 5, Z (-2))), Div (Div (Z 9, Z 5), Z (-3)))))
 
 (* simplify: exceptions --------------------------------------------------------------------------------------------- *)
 let simplify_exc_div_by_zero _ =
