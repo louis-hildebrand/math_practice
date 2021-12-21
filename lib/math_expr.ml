@@ -253,5 +253,5 @@ and simplify_div (e1: expr) (e2: expr): expr =
     | Z (n), Z (m) -> rational_of_ints (n, m)
     | Z (n), Div (Z n1, Z d1) -> rational_of_ints (multiply_rational (n, 1) (d1, n1))
     | Div (Z n1, Z d1), Z (n) -> rational_of_ints (multiply_rational (n1, d1) (1, n))
-    | Div (Z n1, Z d1), Div (Z n2, Z d2) -> rational_of_ints (multiply_rational (n1, d1) (n2, d2))
+    | Div (Z n1, Z d1), Div (Z n2, Z d2) -> rational_of_ints (multiply_rational (n1, d1) (d2, n2))
     | _ -> raise (NonRational (sprintf "e1' = %s, e2' = %s" (string_of_expr e1') (string_of_expr e2')))
