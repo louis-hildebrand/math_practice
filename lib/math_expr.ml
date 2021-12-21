@@ -163,6 +163,62 @@ let next_rand (min_depth: int) (max_depth: int) (width: int) (min_const: int) (m
   else
     next_rand' min_depth max_depth width min_const max_const
 
+let gcd (n: int) (m: int): int =
+  let rec gcd' big small =
+    if small = 0 then big
+    else gcd' small (big mod small)
+  in
+  let (n', m') = (abs n, abs m) in
+  gcd' (max n' m') (min n' m')
+
+let reduce_fraction ((numer: int), (denom: int)): (int * int) =
+  if denom = 0 then
+    raise (Undefined (sprintf "Attempt to divide by 0 in expression %s." (string_of_expr (Div (Z numer, Z denom)))))
+  else
+    let g =
+      if denom > 0 then gcd numer denom 
+      else ~- (gcd numer denom)
+    in
+    (numer / g, denom / g)
+
+let add_rational ((n1: int), (d1: int)) ((n2: int), (d2: int)): (int * int) =
+  (* n1/d1 + n2/d2 = (n1*d2 + n2*d1)/(d1*d2) *)
+  (* If overflow ever becomes a problem, try finding the LCM of the denominators instead *)
+  (n1*d2 + n2*d1, d1*d2)
+
+let rational_of_ints ((n: int), (d: int)): expr =
+  let (n', d') = reduce_fraction (n, d) in
+  if d' = 1 then Z (n')
+  else Div (Z n', Z d')
+
+let simplify_add (args: expr list): expr =
+  (* Add rationals and accumulate non-rational terms *)
+  let f (r, nr) arg =
+    match r, arg with
+    | Z (n), Z (m) -> (rational_of_ints (add_rational (n, 1) (m, 1)), nr)
+    | Z (n), Div (Z n1, Z d1) -> (rational_of_ints (add_rational (n, 1) (n1, d1)), nr)
+    | Div (Z n1, Z d1), Z (n) -> (rational_of_ints (add_rational (n1, d1) (n, 1)), nr)
+    | Div (Z n1, Z d1), Div (Z n2, Z d2) -> (rational_of_ints (add_rational (n1, d1) (n2, d2)), nr)
+    | _ -> (r, arg::nr)
+  in
+  let (r, nr) = List.fold_left f (Z 0, []) args in
+  if List.length nr = 0 then r
+  else Add (r::nr)
+
 exception NotImplemented
-let simplify (_: expr): expr =
+let simplify_sub (args: expr list): expr =
   raise NotImplemented
+
+let simplify_mul (args: expr list): expr =
+  raise NotImplemented
+
+let simplify_div (e1: expr) (e2: expr): expr =
+  raise NotImplemented
+
+let simplify (e: expr): expr =
+  match e with
+  | Z (n) -> Z (n)
+  | Add (es) -> simplify_add es
+  | Sub (es) -> simplify_sub es
+  | Mul (es) -> simplify_mul es
+  | Div (e1, e2) -> simplify_div e1 e2
