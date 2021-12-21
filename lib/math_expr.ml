@@ -43,7 +43,7 @@ let string_of_expr (e: expr): string =
   let rec string_of_expr' (ctxt: expr_context option) (e: expr): string =
     match e with
     | Z (n) ->
-        if n < 0 then "(" ^ (string_of_int n) ^ ")"
+        if n < 0 && ctxt != None then "(" ^ (string_of_int n) ^ ")"
         else string_of_int n
     | Add (e1::e2::es) ->
         let init = (string_of_expr' (Some (OAdd, 0)) e1) ^ " + " ^ (string_of_expr' (Some (OAdd, 1)) e2) in
