@@ -359,61 +359,73 @@ let eval_exc_mul_num_args _ =
 (* simplify: values ------------------------------------------------------------------------------------------------- *)
 let simplify_int _ =
   assert_equal
+    ~printer: string_of_expr
     (Z 1)
     (simplify (Z 1))
 
 let simplify_add0 _ =
   assert_equal
+    ~printer: string_of_expr
     (Z 2)
     (simplify (Add [Z (-4); Z 1; Z 5]))
 
 let simplify_add1 _ =
   assert_equal
+    ~printer: string_of_expr
     (Div (Z 4, Z 5))
     (simplify (Add [Div (Z 7, Z 10); Div (Z 1, Z 10)]))
 
 let simplify_add2 _ =
   assert_equal
+    ~printer: string_of_expr
     (Z 2)
     (simplify (Add [Z (-5); Mul [Z 2; Z 3]; Div (Z 1, Z 2); Div (Z 1, Z 2)]))
 
 let simplify_sub0 _ =
   assert_equal
+    ~printer: string_of_expr
     (Z 2)
     (simplify (Sub [Z 5; Z 4; Z (-1)]))
 
 let simplify_sub1 _ =
   assert_equal
+    ~printer: string_of_expr
     (Div (Z 1, Z 5))
     (simplify (Sub [Div (Z 3, Z 10); Div (Z 1, Z 10)]))
 
 let simplify_sub2 _ =
   assert_equal
+    ~printer: string_of_expr
     (Z 1)
     (simplify (Sub [Add [Z 1; Z 2]; Div (Z 1, Z 2); Div (Z 3, Z 2)]))
 
 let simplify_mul0 _ =
   assert_equal
+    ~printer: string_of_expr
     (Z (-6))
     (simplify (Mul [Z 1; Z 2; Z (-3)]))
 
 let simplify_mul1 _ =
   assert_equal
+    ~printer: string_of_expr
     (Div (Z 1, Z 3))
     (simplify (Mul [Div (Z 1, Z 2); Div (Z 2, Z 3)]))
 
 let simplify_mul2 _ =
   assert_equal
+    ~printer: string_of_expr
     (Z 3)
     (simplify (Mul [Add [Z 1; Z 2]; Div (Z 5, Z 3); Div (Z 9, Z 15)]))
 
 let simplify_div0 _ =
   assert_equal
+    ~printer: string_of_expr
     (Z 2)
     (simplify (Div (Z 4, Z 2)))
 
 let simplify_div1 _ =
   assert_equal
+    ~printer: string_of_expr
     (Div (Z 2, Z 3))
     (simplify (Div (Add [Z 2; Z 4], Mul [Z 3; Z 3])))
 
