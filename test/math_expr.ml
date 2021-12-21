@@ -435,6 +435,21 @@ let simplify_exc_div_by_zero _ =
     (Undefined "Attempt to divide by zero in expression 1 / (1 - 1).")
     (fun () -> simplify (Div (Z 1, Sub [Z 1; Z 1])))
 
+let simplify_exc_add_num_args _ =
+  assert_raises
+    (InvalidExpr "Wrong number of arguments for operation Add.")
+    (fun () -> simplify (Add [Z 1]))
+
+let simplify_exc_sub_num_args _ =
+  assert_raises
+    (InvalidExpr "Wrong number of arguments for operation Sub.")
+    (fun () -> simplify (Sub [Z 1]))
+
+let simplify_exc_mul_num_args _ =
+  assert_raises
+    (InvalidExpr "Wrong number of arguments for operation Mul.")
+    (fun () -> simplify (Mul [Z 1]))
+
 (* List and run tests ----------------------------------------------------------------------------------------------- *)
 let tests =
   "math_expr_tests">::: [
@@ -494,6 +509,9 @@ let tests =
     "simplify_div0">:: simplify_div0;
     "simplify_div1">:: simplify_div1;
     "simplify_exc_div_by_zero">:: simplify_exc_div_by_zero;
+    "simplify_exc_add_num_args">:: simplify_exc_add_num_args;
+    "simplify_exc_sub_num_args">:: simplify_exc_sub_num_args;
+    "simplify_exc_mul_num_args">:: simplify_exc_mul_num_args;
   ]
 
 let () =
