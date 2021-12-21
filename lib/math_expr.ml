@@ -171,15 +171,13 @@ let gcd (n: int) (m: int): int =
   let (n', m') = (abs n, abs m) in
   gcd' (max n' m') (min n' m')
 
+(* Does NOT check for division by zero *)
 let reduce_fraction ((numer: int), (denom: int)): (int * int) =
-  if denom = 0 then
-    raise (Undefined (sprintf "Attempt to divide by zero in expression %s." (string_of_expr (Div (Z numer, Z denom)))))
-  else
-    let g =
-      if denom > 0 then gcd numer denom 
-      else ~- (gcd numer denom)
-    in
-    (numer / g, denom / g)
+  let g =
+    if denom > 0 then gcd numer denom 
+    else ~- (gcd numer denom)
+  in
+  (numer / g, denom / g)
 
 let add_rational ((n1: int), (d1: int)) ((n2: int), (d2: int)): (int * int) =
   (* n1/d1 + n2/d2 = (n1*d2 + n2*d1)/(d1*d2) *)
