@@ -181,17 +181,17 @@ let next_rand_exc_min_const_equal_max_const _ =
 
 (* string_of_expr: single operations -------------------------------------------------------------------------------- *)
 (* Z (positive) *)
-let string_of_expr_z_positive _ =
+let string_of_expr_int_positive _ =
   assert_equal
     ~printer: (fun x -> x)
     "1"
     (string_of_expr (Z 1))
 
 (* Z (negative) *)
-let string_of_expr_z_negative _ =
+let string_of_expr_int_negative _ =
   assert_equal
     ~printer: (fun x -> x)
-    "(-1)"
+    "-1"
     (string_of_expr (Z (-1)))
 
 (* Add *)
@@ -468,8 +468,8 @@ let tests =
     "next_rand_exc_min_depth_greater_than_max_depth">:: next_rand_exc_min_depth_greater_than_max_depth;
     "next_rand_exc_width_invalid">:: next_rand_exc_width_invalid;
     "next_rand_exc_min_const_equal_max_const">:: next_rand_exc_min_const_equal_max_const;
-    "string_of_expr_z_positive">:: string_of_expr_z_positive;
-    "string_of_expr_z_negative">:: string_of_expr_z_negative;
+    "string_of_expr_int_positive">:: string_of_expr_int_positive;
+    "string_of_expr_int_negative">:: string_of_expr_int_negative;
     "string_of_expr_add">:: string_of_expr_add;
     "string_of_expr_sub">:: string_of_expr_sub;
     "string_of_expr_mul">:: string_of_expr_mul;
