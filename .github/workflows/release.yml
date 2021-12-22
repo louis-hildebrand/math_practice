@@ -20,13 +20,13 @@ jobs:
     steps:
       - name: Set artifact name for MacOS
         if: matrix.os == 'macos-latest'
-        run: echo 'ARTIFACT_NAME="release${{env.VERSION}}-macos.exe"' >> $GITHUB_ENV
+        run: echo 'ARTIFACT_NAME=math_practice${{env.VERSION}}-macos.exe' >> $GITHUB_ENV
       - name: Set artifact name for Ubuntu
         if: matrix.os == 'ubuntu-latest'
-        run: echo 'ARTIFACT_NAME="release${{env.VERSION}}-ubuntu.exe"' >> $GITHUB_ENV
+        run: echo 'ARTIFACT_NAME=math_practice${{env.VERSION}}-ubuntu.exe' >> $GITHUB_ENV
       - name: Set artifact name for Windows
         if: matrix.os == 'windows-latest'
-        run: echo 'ARTIFACT_NAME="release${{env.VERSION}}-windows.exe"' >> $GITHUB_ENV
+        run: echo 'ARTIFACT_NAME=math_practice${{env.VERSION}}-windows.exe' >> $GITHUB_ENV
       - name: Check out code
         uses: actions/checkout@v2
       - name: Set up OCaml ${{ matrix.ocaml-compiler }}
