@@ -45,10 +45,10 @@ let string_of_expr (e: expr): string =
     | Z (n) ->
         if n < 0 then "(" ^ (string_of_int n) ^ ")"
         else string_of_int n
-    | Add (e1::e2::es) ->
-        let init = (string_of_expr' (Some (OAdd, 0)) e1) ^ " + " ^ (string_of_expr' (Some (OAdd, 1)) e2) in
+    | Add (e1::es) when List.length es >= 1 ->
+        let init = string_of_expr' (Some (OAdd, 0)) e1 in
         let append = fun (i, acc) e -> (i + 1, acc ^ " + " ^ (string_of_expr' (Some (OAdd, i)) e)) in
-        let (_, final) = List.fold_left append (2, init) es in
+        let (_, final) = List.fold_left append (1, init) es in
         (match ctxt with
         | None
         | Some (OAdd, _)
@@ -58,10 +58,10 @@ let string_of_expr (e: expr): string =
         | Some (ODiv, _) -> "(" ^ final ^ ")")
     | Add _ ->
         raise (InvalidExpr "Wrong number of arguments for operation Add.")
-    | Sub (e1::e2::es) ->
-        let init = (string_of_expr' (Some (OSub, 0)) e1) ^ " - " ^ (string_of_expr' (Some (OSub, 1)) e2) in
+    | Sub (e1::es) when List.length es >= 1 ->
+        let init = string_of_expr' (Some (OSub, 0)) e1 in
         let append = fun (i, acc) e -> (i + 1, acc ^ " - " ^ (string_of_expr' (Some (OSub, i)) e)) in
-        let (_, final) = List.fold_left append (2, init) es in
+        let (_, final) = List.fold_left append (1, init) es in
         (match ctxt with
         | None
         | Some (OAdd, _)
@@ -71,10 +71,10 @@ let string_of_expr (e: expr): string =
         | Some (ODiv, _) -> "(" ^ final ^ ")")
     | Sub _ ->
         raise (InvalidExpr "Wrong number of arguments for operation Sub.")
-    | Mul (e1::e2::es) ->
-        let init = (string_of_expr' (Some (OMul, 0)) e1) ^ " * " ^ (string_of_expr' (Some (OMul, 1)) e2) in
+    | Mul (e1::es) when List.length es >= 1 ->
+        let init = string_of_expr' (Some (OMul, 0)) e1 in
         let append = fun (i, acc) e -> (i + 1, acc ^ " * " ^ (string_of_expr' (Some (OMul, i)) e)) in
-        let (_, final) = List.fold_left append (2, init) es in
+        let (_, final) = List.fold_left append (1, init) es in
         (match ctxt with
         | None
         | Some (OAdd, _)
@@ -99,11 +99,11 @@ let string_of_expr (e: expr): string =
 let rec eval (e: expr): float =
   match e with
   | Z (n) -> float_of_int n
-  | Add (e1::e2::es) -> List.fold_left (fun acc e -> acc +. eval e) (eval e1 +. eval e2) es
+  | Add (es) when List.length es >= 2 -> List.fold_left (fun acc e -> acc +. eval e) 0.0 es
   | Add _ -> raise (InvalidExpr "Wrong number of arguments for operation Add.")
-  | Sub (e1::e2::es) -> List.fold_left (fun acc e -> acc -. eval e) (eval e1 -. eval e2) es
+  | Sub (e1::es) when List.length es >= 1 -> List.fold_left (fun acc e -> acc -. eval e) (eval e1) es
   | Sub _ -> raise (InvalidExpr "Wrong number of arguments for operation Sub.")
-  | Mul (e1::e2::es) -> List.fold_left (fun acc e -> acc *. eval e) (eval e1 *. eval e2) es
+  | Mul (es) when List.length es >= 2 -> List.fold_left (fun acc e -> acc *. eval e) 1.0 es
   | Mul _ -> raise (InvalidExpr "Wrong number of arguments for operation Mul.")
   | Div (e1, e2) ->
       let denom = eval e2 in
@@ -162,3 +162,94 @@ let next_rand (min_depth: int) (max_depth: int) (width: int) (min_const: int) (m
     raise (Invalid_argument "Minimum constant must be less than maximum constant.")
   else
     next_rand' min_depth max_depth width min_const max_const
+
+let gcd (n: int) (m: int): int =
+  let rec gcd' big small =
+    if small = 0 then big
+    else gcd' small (big mod small)
+  in
+  let (n', m') = (abs n, abs m) in
+  gcd' (max n' m') (min n' m')
+
+(* Does NOT check for division by zero *)
+let reduce_fraction ((numer: int), (denom: int)): (int * int) =
+  let g =
+    if denom > 0 then gcd numer denom 
+    else ~- (gcd numer denom)
+  in
+  (numer / g, denom / g)
+
+let add_rational ((n1: int), (d1: int)) ((n2: int), (d2: int)): (int * int) =
+  (* n1/d1 + n2/d2 = (n1*d2 + n2*d1)/(d1*d2) *)
+  (* If overflow ever becomes a problem, try finding the LCM of the denominators instead *)
+  (n1*d2 + n2*d1, d1*d2)
+
+let multiply_rational ((n1: int), (d1: int)) ((n2: int), (d2: int)): (int * int) =
+  (* n1/d1 * n2/d2 = (n1*n2)/(d1*d2) *)
+  (n1 * n2, d1 * d2)
+
+let rational_of_ints ((n: int), (d: int)): expr =
+  let (n', d') = reduce_fraction (n, d) in
+  if d' = 1 then Z (n')
+  else Div (Z n', Z d')
+
+exception NonRational of string
+let rec simplify (e: expr): expr =
+  match e with
+  | Z (n) -> Z (n)
+  | Add (es) when List.length es >= 2 -> simplify_add es
+  | Add _ -> raise (InvalidExpr "Wrong number of arguments for operation Add.")
+  | Sub (es) when List.length es >= 2 -> simplify_sub es
+  | Sub _ -> raise (InvalidExpr "Wrong number of arguments for operation Sub.")
+  | Mul (es) when List.length es >= 2 -> simplify_mul es
+  | Mul _ -> raise (InvalidExpr "Wrong number of arguments for operation Mul.")
+  | Div (e1, e2) -> simplify_div e1 e2
+and simplify_add (args: expr list): expr =
+  (* Evaluate and add rationals *)
+  (* Once operations are implemented that do not necessarily evaluate to rationals, will need to accumulate those *)
+  let f r arg =
+    let arg' = simplify arg in
+    match r, arg' with
+    | Z (n), Z (m) -> rational_of_ints (add_rational (n, 1) (m, 1))
+    | Z (n), Div (Z n1, Z d1) -> rational_of_ints (add_rational (n, 1) (n1, d1))
+    | Div (Z n1, Z d1), Z (n) -> rational_of_ints (add_rational (n1, d1) (n, 1))
+    | Div (Z n1, Z d1), Div (Z n2, Z d2) -> rational_of_ints (add_rational (n1, d1) (n2, d2))
+    | _ -> raise (NonRational (sprintf "r = %s, arg' = %s" (string_of_expr r) (string_of_expr arg')))
+  in
+  List.fold_left f (Z 0) args
+and simplify_sub (args: expr list): expr =
+  (* Evaluate and subtract rationals *)
+  (* Once operations are implemented that do not necessarily evaluate to rationals, will need to accumulate those *)
+  let f r arg =
+    let arg' = simplify arg in
+    match r, arg' with
+    | Z (n), Z (m) -> rational_of_ints (add_rational (n, 1) (-m, 1))
+    | Z (n), Div (Z n1, Z d1) -> rational_of_ints (add_rational (n, 1) (-n1, d1))
+    | Div (Z n1, Z d1), Z (n) -> rational_of_ints (add_rational (n1, d1) (-n, 1))
+    | Div (Z n1, Z d1), Div (Z n2, Z d2) -> rational_of_ints (add_rational (n1, d1) (-n2, d2))
+    | _ -> raise (NonRational (sprintf "r = %s, arg' = %s" (string_of_expr r) (string_of_expr arg')))
+  in
+  (* Assume the list has at least 2 elements (this was checked in the main simplify function) *)
+  List.fold_left f (simplify (List.hd args)) (List.tl args)
+and simplify_mul (args: expr list): expr =
+  let f r arg =
+    let arg' = simplify arg in
+    match r, arg' with
+    | Z (n), Z (m) -> rational_of_ints (multiply_rational (n, 1) (m, 1))
+    | Z (n), Div (Z n1, Z d1) -> rational_of_ints (multiply_rational (n, 1) (n1, d1))
+    | Div (Z n1, Z d1), Z (n) -> rational_of_ints (multiply_rational (n1, d1) (n, 1))
+    | Div (Z n1, Z d1), Div (Z n2, Z d2) -> rational_of_ints (multiply_rational (n1, d1) (n2, d2))
+    | _ -> raise (NonRational (sprintf "r = %s, arg' = %s" (string_of_expr r) (string_of_expr arg')))
+  in
+  List.fold_left f (Z 1) args
+and simplify_div (e1: expr) (e2: expr): expr =
+  if eval e2 = 0.0 then
+    raise (Undefined (sprintf "Attempt to divide by zero in expression %s." (string_of_expr (Div (e1, e2)))))
+  else
+    let (e1', e2') = (simplify e1, simplify e2) in
+    match e1', e2' with
+    | Z (n), Z (m) -> rational_of_ints (n, m)
+    | Z (n), Div (Z n1, Z d1) -> rational_of_ints (multiply_rational (n, 1) (d1, n1))
+    | Div (Z n1, Z d1), Z (n) -> rational_of_ints (multiply_rational (n1, d1) (1, n))
+    | Div (Z n1, Z d1), Div (Z n2, Z d2) -> rational_of_ints (multiply_rational (n1, d1) (d2, n2))
+    | _ -> raise (NonRational (sprintf "e1' = %s, e2' = %s" (string_of_expr e1') (string_of_expr e2')))
