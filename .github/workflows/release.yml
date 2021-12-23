@@ -49,6 +49,8 @@ jobs:
     env:
       ARTIFACT_NAME: math_practice1.0.0-source
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
       - name: Save source code
         uses: actions/upload-artifact@v2
         with:
