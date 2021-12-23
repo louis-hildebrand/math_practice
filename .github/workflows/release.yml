@@ -47,8 +47,7 @@ jobs:
   source:
     runs-on: ubuntu-latest
     env:
-      VERSION: 1.0.0
-      ARTIFACT_NAME: math_practice${{env.VERSION}}-source
+      ARTIFACT_NAME: math_practice1.0.0-source
     steps:
       - name: Save source code
         uses: actions/upload-artifact@v2
