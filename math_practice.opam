@@ -5,6 +5,7 @@ synopsis: "A command-line tool to generate math exercises"
 maintainer: ["Louis Hildebrand <louis.hildebrand@mail.mcgill.ca>"]
 authors: ["Louis Hildebrand <louis.hildebrand@mail.mcgill.ca>"]
 homepage: "https://github.com/louis-hildebrand/math_practice"
+dev-repo: "https://github.com/louis-hildebrand/math_practice"
 bug-reports: "https://github.com/louis-hildebrand/math_practice/issues"
 depends: [
   "dune" {>= "2.9"}
