@@ -44,22 +44,3 @@ jobs:
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: _build/default/src/main.exe
-  source:
-    runs-on: ubuntu-latest
-    env:
-      ARTIFACT_NAME: math_practice1.0.0-source
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Save source code
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{ env.ARTIFACT_NAME }}
-          path: |
-            lib
-            src
-            test
-            .gitignore
-            README.md
-            dune-project
-            math_practice.opam
