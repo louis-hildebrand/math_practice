@@ -6,7 +6,8 @@ jobs:
   build:
     strategy:
       fail-fast: false
-      ocaml-compiler: 4.05.0
+      matrix:
+        ocaml-compiler: 4.05.0
     runs-on: windows-10
     env:
       OUNIT_CI: true
