@@ -6,27 +6,15 @@ jobs:
   build:
     strategy:
       fail-fast: false
-      matrix:
-        os:
-          - macos-latest
-          - ubuntu-latest
-          - windows-latest
-        ocaml-compiler:
-          - 4.05.0
-    runs-on: ${{ matrix.os }}
+    ocaml-compiler: 4.05.0
+    runs-on: windows-10
     env:
       OUNIT_CI: true
       VERSION: 1.0.0
+      EXE_PATH: _build/default/src
+      EXE_OLD_NAME: main.exe
+      EXE_NEW_NAME: math_practice.exe
     steps:
-      - name: Set artifact name for MacOS
-        if: matrix.os == 'macos-latest'
-        run: echo 'ARTIFACT_NAME=math_practice${{env.VERSION}}-macos' >> $GITHUB_ENV
-      - name: Set artifact name for Ubuntu
-        if: matrix.os == 'ubuntu-latest'
-        run: echo 'ARTIFACT_NAME=math_practice${{env.VERSION}}-ubuntu' >> $GITHUB_ENV
-      - name: Set artifact name for Windows
-        if: matrix.os == 'windows-latest'
-        run: echo 'ARTIFACT_NAME=math_practice${{env.VERSION}}-windows' >> $GITHUB_ENV
       - name: Check out code
         uses: actions/checkout@v2
       - name: Set up OCaml ${{ matrix.ocaml-compiler }}
@@ -39,8 +27,13 @@ jobs:
         run: opam exec -- dune build
       - name: Run tests
         run: opam exec -- dune runtest
+      
+      - name: Set artifact name
+        run: |
+          echo 'ARTIFACT_NAME=math_practice${{env.VERSION}}-windows' >> $GITHUB_ENV
+          mv ${{env.EXE_PATH}}/${{env.EXE_OLD_NAME}} ${{env.EXE_PATH}}/${{env.EXE_NEW_NAME}}
       - name: Save artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ env.ARTIFACT_NAME }}
-          path: _build/default/src/main.exe
+          name: ${{env.ARTIFACT_NAME}}
+          path: ${{env.EXE_PATH}}/${{env.EXE_NEW_NAME}}
