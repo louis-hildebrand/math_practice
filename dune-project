@@ -4,7 +4,7 @@
 (generate_opam_files true)
 
 (name math_practice)
-(version v1.0.2)
+(version v1.0.3)
 
 (package
  (name math_practice)
