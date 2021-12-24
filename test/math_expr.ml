@@ -502,7 +502,7 @@ let simplify_mul2 _ =
 let simplify_mul3 _ =
   assert_equal
     ~printer: string_of_expr
-    (Mul [Z 4; Var "x"])
+    (Mul [Z 8; Var "x"])
     (simplify (Mul [Z 1; Z 2; Var "x"; Z 4]))
 
 let simplify_div0 _ =
@@ -520,8 +520,8 @@ let simplify_div1 _ =
 let simplify_div2 _ =
   assert_equal
     ~printer: string_of_expr
-    (Div (Z 2, Var "x"))
-    (simplify (Div (Z 2, Var "x")))
+    (Div (Add [Z 2; Z 3], Sub [Z 2; Var "x"; Z 1]))
+    (simplify (Div (Z 5, Sub [Z 1; Var "x"])))
 
 (* simplify: exceptions --------------------------------------------------------------------------------------------- *)
 let simplify_exc_div_by_zero _ =
