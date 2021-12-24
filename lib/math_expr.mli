@@ -13,8 +13,8 @@ exception InvalidExpr of string
 (** Expression involves an invalid operation (e.g. division by zero) *)
 exception Undefined of string
 
-(** Attempt to evaluate an expression when some variables were not given a value *)
-exception UnknownVariable of string
+(** Attempt to evaluate an expression when some variables were not defined or were defined multiple times *)
+exception BadDefinitions of string
 
 (** Initializes the random number generator. *)
 val init: unit -> unit

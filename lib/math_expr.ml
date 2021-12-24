@@ -20,7 +20,7 @@ type expr_context = operation * int (* Parent operation and position (starting a
 (* Exceptions --------------------------------------------------------------- *)
 exception InvalidExpr of string
 exception Undefined of string
-exception UnknownVariable of string
+exception BadDefinitions of string
 
 (* Helper functions --------------------------------------------------------- *)
 let repeat (x: 'a) (n: int): 'a list =

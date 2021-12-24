@@ -25,7 +25,7 @@ let rec has_div_by_zero (e: expr): bool =
   | Add es
   | Sub es
   | Mul es -> List.exists (fun arg -> has_div_by_zero arg) es
-  | Div (e1, e2) -> has_div_by_zero e1 || has_div_by_zero e2 || (try eval e2 [] = 0.0 with UnknownVariable _ -> false)
+  | Div (e1, e2) -> has_div_by_zero e1 || has_div_by_zero e2 || (try eval e2 [] = 0.0 with BadDefinitions _ -> false)
 
 let repeat (x: 'a) (n: int): 'a list =
   let rec repeat' n acc =
@@ -392,10 +392,15 @@ let eval_exc_mul_num_args _ =
     (InvalidExpr "Wrong number of arguments for operation Mul.")
     (fun () -> eval (Mul [Z 1]) [])
 
-let eval_exc_unknown_var _ =
+let eval_exc_unknown_var0 _ =
   assert_raises
-    (UnknownVariable "Unknown variable y.")
+    (BadDefinitions "No definition provided for variable 'y'.")
     (fun () -> eval (Add [Var "x"; Z 1; Var "y"]) [("x", 1.0)])
+
+let eval_exc_unknown_var1 _ =
+  assert_raises
+    (BadDefinitions "Multiple definitions provided for variable 'y' (e.g. 2.123000, 2.123000).")
+    (fun () -> eval (Add [Var "x"; Z 1; Var "y"]) [("x", 1.0); ("y", 2.123); ("y", 2.123)])
 
 (* simplify: values ------------------------------------------------------------------------------------------------- *)
 let simplify_int _ =
@@ -579,7 +584,8 @@ let tests =
     "eval_exc_add_num_args">:: eval_exc_add_num_args;
     "eval_exc_sub_num_args">:: eval_exc_sub_num_args;
     "eval_exc_mul_num_args">:: eval_exc_mul_num_args;
-    "eval_exc_unknown_var">:: eval_exc_unknown_var;
+    "eval_exc_unknown_var0">:: eval_exc_unknown_var0;
+    "eval_exc_unknown_var1">:: eval_exc_unknown_var1;
     "simplify_int">:: simplify_int;
     "simplify_add0">:: simplify_add0;
     "simplify_add1">:: simplify_add1;
