@@ -451,6 +451,12 @@ let simplify_add3 _ =
     (Add [Z 3; Var "x"])
     (simplify (Add [Z 1; Div (Z 3, Z 2); Var "x"; Div (Z 1, Z 2)]))
 
+let simplify_add4 _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Var "x")
+    (simplify (Add [Z 1; Var "x"; Z (-1)]))
+
 let simplify_sub0 _ =
   assert_equal
     ~printer: string_of_expr
@@ -498,6 +504,18 @@ let simplify_sub4 _ =
         Div (Z 1, Z 2);
         Sub [Div (Z 1, Z 3); Var "y"; Z 1]]))
 
+let simplify_sub5 _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Var "x")
+    (simplify (Sub [Var "x"; Z 1; Z (-1)]))
+
+let simplify_sub6 _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Sub [Z 0; Var "x"])
+    (simplify (Sub [Z 1; Var "x"; Z 1]))
+
 let simplify_mul0 _ =
   assert_equal
     ~printer: string_of_expr
@@ -522,6 +540,24 @@ let simplify_mul3 _ =
     (Mul [Z 8; Var "x"])
     (simplify (Mul [Z 1; Z 2; Var "x"; Z 4]))
 
+let simplify_mul4 _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Z 0)
+    (simplify (Mul [Z 1; Var "x"; Z 0]))
+
+let simplify_mul5 _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Var "x")
+    (simplify (Mul [Div (Z 1, Z 2); Var "x"; Div (Z 2, Z 1)]))
+
+let simplify_mul6 _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Mul [Var "x"; Var "y"])
+    (simplify (Mul [Div (Z 1, Z 2); Var "x"; Div (Z 2, Z 1); Var "y"]))
+
 let simplify_div0 _ =
   assert_equal
     ~printer: string_of_expr
@@ -539,6 +575,18 @@ let simplify_div2 _ =
     ~printer: string_of_expr
     (Div (Z 5, Sub [Z 1; Var "x"]))
     (simplify (Div (Add [Z 2; Z 3], Sub [Z 2; Var "x"; Z 1])))
+
+let simplify_div3 _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Z 0)
+    (simplify (Div (Add [Z 1; Z (-1)], Var "x")))
+
+let simplify_div4 _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Var "x")
+    (simplify (Div (Var "x", Add [Z 2; Z (-1)])))
 
 (* simplify: exceptions --------------------------------------------------------------------------------------------- *)
 let simplify_exc_div_by_zero0 _ =
@@ -626,18 +674,26 @@ let tests =
     "simplify_add1">:: simplify_add1;
     "simplify_add2">:: simplify_add2;
     "simplify_add3">:: simplify_add3;
+    "simplify_add4">:: simplify_add4;
     "simplify_sub0">:: simplify_sub0;
     "simplify_sub1">:: simplify_sub1;
     "simplify_sub2">:: simplify_sub2;
     "simplify_sub3">:: simplify_sub3;
     "simplify_sub4">:: simplify_sub4;
+    "simplify_sub5">:: simplify_sub5;
+    "simplify_sub6">:: simplify_sub6;
     "simplify_mul0">:: simplify_mul0;
     "simplify_mul1">:: simplify_mul1;
     "simplify_mul2">:: simplify_mul2;
     "simplify_mul3">:: simplify_mul3;
+    "simplify_mul4">:: simplify_mul4;
+    "simplify_mul5">:: simplify_mul5;
+    "simplify_mul6">:: simplify_mul6;
     "simplify_div0">:: simplify_div0;
     "simplify_div1">:: simplify_div1;
     "simplify_div2">:: simplify_div2;
+    "simplify_div3">:: simplify_div3;
+    "simplify_div4">:: simplify_div4;
     "simplify_exc_div_by_zero0">:: simplify_exc_div_by_zero0;
     "simplify_exc_div_by_zero1">:: simplify_exc_div_by_zero1;
     "simplify_exc_add_num_args">:: simplify_exc_add_num_args;
