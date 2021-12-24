@@ -342,6 +342,7 @@ let eval_add_novars _ =
 let eval_add_vars _ =
   assert_equal
     ~printer: string_of_float
+    ~cmp: (cmp_float ~epsilon:0.000000000000001)
     (-6.8)
     (eval (Add [Var "x"; Z (-1); Add [Z 2; Var "y"]]) [("x", 3.1); ("y", -10.9)])
 
@@ -354,6 +355,7 @@ let eval_sub_novars _ =
 let eval_sub_vars _ =
   assert_equal
     ~printer: string_of_float
+    ~cmp: (cmp_float ~epsilon:0.000000000000001)
     (-0.8)
     (eval (Sub [Var "y"; Z 1; Var "x"]) [("x", 0.1); ("y", 0.3)])
 
