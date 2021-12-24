@@ -323,51 +323,61 @@ let string_of_expr_exc_test2 _ =
 (* eval: values ----------------------------------------------------------------------------------------------------- *)
 let eval_int _ =
   assert_equal
+    ~printer: string_of_float
     1.0
     (eval (Z 1) [])
 
 let eval_var _ =
   assert_equal
+    ~printer: string_of_float
     2.1
     (eval (Var "x") [("x", 2.1)])
 
 let eval_add_novars _ =
   assert_equal
+    ~printer: string_of_float
     8.0
     (eval (Add [Z (-1); Z 2; Add [Z 3; Z 4]]) [])
 
 let eval_add_vars _ =
   assert_equal
+    ~printer: string_of_float
     (-6.8)
     (eval (Add [Var "x"; Z (-1); Add [Z 2; Var "y"]]) [("x", 3.1); ("y", -10.9)])
 
 let eval_sub_novars _ =
   assert_equal
+    ~printer: string_of_float
     4.0
     (eval (Sub [Z 1; Z (-2); Sub [Z 3; Z 4]]) [])
 
 let eval_sub_vars _ =
   assert_equal
+    ~printer: string_of_float
     (-0.8)
     (eval (Sub [Var "y"; Z 1; Var "x"]) [("x", 0.1); ("y", 0.3)])
 
 let eval_mul_novars _ =
   assert_equal
+    ~printer: string_of_float
     24.0
     (eval (Mul [Z 1; Z 2; Mul [Z 3; Z 4]]) [])
 
 let eval_mul_vars _ =
   assert_equal
+    ~printer: string_of_float
     24.0
     (eval (Mul [Var "x"; Var "y"; Var "z"; Z 4]) [("x", 1.0); ("y", 2.0); ("z", 3.0)])
 
 let eval_div_novars _ =
   assert_equal
+    ~printer: string_of_float
     0.5
     (eval (Div (Z 1, Div (Z 2, Z 1))) [])
 
 let eval_div_vars _ =
   assert_equal
+    ~printer: string_of_float
     6.0
     (eval (Div (Var "y", Div (Z 1, Var "x"))) [("x", 2.0); ("y", 3.0)])
 
@@ -399,7 +409,7 @@ let eval_exc_unknown_var0 _ =
 
 let eval_exc_unknown_var1 _ =
   assert_raises
-    (BadDefinitions "Multiple definitions provided for variable 'y' (e.g. 2.123000, 2.123000).")
+    (BadDefinitions "Multiple definitions provided for variable 'y' (e.g. 2.123, 2.123).")
     (fun () -> eval (Add [Var "x"; Z 1; Var "y"]) [("x", 1.0); ("y", 2.123); ("y", 2.123)])
 
 (* simplify: values ------------------------------------------------------------------------------------------------- *)
