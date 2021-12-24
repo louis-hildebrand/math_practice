@@ -6,7 +6,8 @@ open Printf
 (* Calculates the depth of an expression tree *)
 let rec depth (e: expr): int =
   match e with
-  | Z _ -> 0
+  | Z _
+  | Var _ -> 0
   | Add es
   | Sub es
   | Mul es -> 1 + (List.fold_left (fun acc e -> max acc (depth e)) 0 es)
@@ -19,11 +20,12 @@ let rec tabulate (origin: int) (dest: int): int list =
 
 let rec has_div_by_zero (e: expr): bool =
   match e with
-  | Z _ -> false
+  | Z _
+  | Var _ -> false
   | Add es
   | Sub es
   | Mul es -> List.exists (fun arg -> has_div_by_zero arg) es
-  | Div (e1, e2) -> has_div_by_zero e1 || has_div_by_zero e2 || eval e2 [] = 0.0
+  | Div (e1, e2) -> has_div_by_zero e1 || has_div_by_zero e2 || (try eval e2 [] = 0.0 with UnknownVariable _ -> false)
 
 let repeat (x: 'a) (n: int): 'a list =
   let rec repeat' n acc =
@@ -48,6 +50,7 @@ let (random_consts: int list) =
   let rec get_consts e = 
     match e with
     | Z (n) -> [n]
+    | Var _ -> []
     | Add es
     | Sub es 
     | Mul es -> List.fold_left (fun acc arg -> acc @ (get_consts arg)) [] es
@@ -93,7 +96,8 @@ let next_rand_max_width _ =
   (* Asserts a failure if there is any operation in e with more than w arguments *)
   let rec f w e =
     match e with
-    | Z _ -> ()
+    | Z _
+    | Var _ -> ()
     | Add es
     | Sub es
     | Mul es ->
