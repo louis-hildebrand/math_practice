@@ -520,8 +520,8 @@ let simplify_div1 _ =
 let simplify_div2 _ =
   assert_equal
     ~printer: string_of_expr
-    (Div (Add [Z 2; Z 3], Sub [Z 2; Var "x"; Z 1]))
-    (simplify (Div (Z 5, Sub [Z 1; Var "x"])))
+    (Div (Z 5, Sub [Z 1; Var "x"]))
+    (simplify (Div (Add [Z 2; Z 3], Sub [Z 2; Var "x"; Z 1])))
 
 (* simplify: exceptions --------------------------------------------------------------------------------------------- *)
 let simplify_exc_div_by_zero _ =
