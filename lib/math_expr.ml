@@ -204,6 +204,13 @@ let rational_of_ints ((n: int), (d: int)): expr =
   if d' = 1 then Z (n')
   else Div (Z n', Z d')
 
+let equals (e1: expr) (e2: expr): bool =
+  try
+    eval e1 [] = eval e2 []
+  (* TODO: Implement this properly *)
+  with UndefinedVariable _ ->
+    false
+
 let rec simplify (e: expr): expr =
   match e with
   | Z _
@@ -274,7 +281,8 @@ and simplify_mul (args: expr list): expr =
   if nr = [] then r
   else Mul (r :: nr)
 and simplify_div (e1: expr) (e2: expr): expr =
-  if eval e2 [] = 0.0 then
+  let denom_identically_zero = equals e2 (Z 0) in
+  if denom_identically_zero then
     raise (Undefined (sprintf "Attempt to divide by zero in expression %s." (string_of_expr (Div (e1, e2)))))
   else
     let (e1', e2') = (simplify e1, simplify e2) in
