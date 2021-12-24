@@ -10,11 +10,15 @@ type expr =
 (** Expression is badly formed. *)
 exception InvalidExpr of string
 
-(** Expression involves an invalid operation (e.g. division by zero) *)
+(** Expression involves an invalid operation (e.g. division by zero). *)
 exception Undefined of string
 
-(** Attempt to evaluate an expression when some variables were not defined or were defined multiple times *)
-exception BadDefinitions of string
+(** Attempt to evaluate an expression when some variables were not given a value. *)
+exception UndefinedVariable of string
+
+(** Attempt to evaluate an expression when some variables were given multiple values.
+    This exception is raised even if the values are all the same. *)
+exception MultipleDefinitions of string
 
 (** Initializes the random number generator. *)
 val init: unit -> unit

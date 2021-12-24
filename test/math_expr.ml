@@ -25,7 +25,7 @@ let rec has_div_by_zero (e: expr): bool =
   | Add es
   | Sub es
   | Mul es -> List.exists (fun arg -> has_div_by_zero arg) es
-  | Div (e1, e2) -> has_div_by_zero e1 || has_div_by_zero e2 || (try eval e2 [] = 0.0 with BadDefinitions _ -> false)
+  | Div (e1, e2) -> has_div_by_zero e1 || has_div_by_zero e2 || (try eval e2 [] = 0.0 with UndefinedVariable _ -> false)
 
 let repeat (x: 'a) (n: int): 'a list =
   let rec repeat' n acc =
@@ -404,12 +404,12 @@ let eval_exc_mul_num_args _ =
 
 let eval_exc_unknown_var0 _ =
   assert_raises
-    (BadDefinitions "No definition provided for variable 'y'.")
+    (UndefinedVariable "No definition provided for variable 'y'.")
     (fun () -> eval (Add [Var "x"; Z 1; Var "y"]) [("x", 1.0)])
 
 let eval_exc_unknown_var1 _ =
   assert_raises
-    (BadDefinitions "Multiple definitions provided for variable 'y' (e.g. 2.123, 2.123).")
+    (MultipleDefinitions "Multiple definitions provided for variable 'y' (e.g. 2.123, 2.123).")
     (fun () -> eval (Add [Var "x"; Z 1; Var "y"]) [("x", 1.0); ("y", 2.123); ("y", 2.123)])
 
 (* simplify: values ------------------------------------------------------------------------------------------------- *)

@@ -20,7 +20,8 @@ type expr_context = operation * int (* Parent operation and position (starting a
 (* Exceptions --------------------------------------------------------------- *)
 exception InvalidExpr of string
 exception Undefined of string
-exception BadDefinitions of string
+exception UndefinedVariable of string
+exception MultipleDefinitions of string
 
 (* Helper functions --------------------------------------------------------- *)
 let repeat (x: 'a) (n: int): 'a list =
@@ -105,9 +106,9 @@ let rec eval (e: expr) (vals: (string * float) list): float =
   | Var (name) ->
       let vs = List.map (fun (_, v) -> v) (List.filter (fun (n, _) -> n = name) vals) in
       (match vs with
-      | [] -> raise (BadDefinitions (sprintf "No definition provided for variable '%s'." name))
+      | [] -> raise (UndefinedVariable (sprintf "No definition provided for variable '%s'." name))
       | [v] -> v
-      | v1::v2::_ -> raise (BadDefinitions
+      | v1::v2::_ -> raise (MultipleDefinitions
           (sprintf "Multiple definitions provided for variable '%s' (e.g. %.6f, %.6f)." name v1 v2)))
   | Add (es) when List.length es >= 2 -> List.fold_left (fun acc e -> acc +. eval e vals) 0.0 es
   | Add _ -> raise (InvalidExpr "Wrong number of arguments for operation Add.")
