@@ -47,6 +47,7 @@ let string_of_expr (e: expr): string =
     | Z (n) ->
         if n < 0 && ctxt != None then "(" ^ (string_of_int n) ^ ")"
         else string_of_int n
+    | Var (name) -> name
     | Add (e1::es) when List.length es >= 1 ->
         let init = string_of_expr' (Some (OAdd, 0)) e1 in
         let append = fun (i, acc) e -> (i + 1, acc ^ " + " ^ (string_of_expr' (Some (OAdd, i)) e)) in
