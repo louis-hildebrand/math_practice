@@ -204,10 +204,10 @@ let rational_of_ints ((n: int), (d: int)): expr =
   if d' = 1 then Z (n')
   else Div (Z n', Z d')
 
-exception NonRational of string
 let rec simplify (e: expr): expr =
   match e with
-  | Z (n) -> Z (n)
+  | Z _
+  | Var _ -> e
   | Add (es) when List.length es >= 2 -> simplify_add es
   | Add _ -> raise (InvalidExpr "Wrong number of arguments for operation Add.")
   | Sub (es) when List.length es >= 2 -> simplify_sub es
@@ -216,43 +216,63 @@ let rec simplify (e: expr): expr =
   | Mul _ -> raise (InvalidExpr "Wrong number of arguments for operation Mul.")
   | Div (e1, e2) -> simplify_div e1 e2
 and simplify_add (args: expr list): expr =
-  (* Evaluate and add rationals *)
-  (* Once operations are implemented that do not necessarily evaluate to rationals, will need to accumulate those *)
-  let f r arg =
+  (* Add rationals and accumulate anything else *)
+  let f (r, nr) arg =
     let arg' = simplify arg in
     match r, arg' with
-    | Z (n), Z (m) -> rational_of_ints (add_rational (n, 1) (m, 1))
-    | Z (n), Div (Z n1, Z d1) -> rational_of_ints (add_rational (n, 1) (n1, d1))
-    | Div (Z n1, Z d1), Z (n) -> rational_of_ints (add_rational (n1, d1) (n, 1))
-    | Div (Z n1, Z d1), Div (Z n2, Z d2) -> rational_of_ints (add_rational (n1, d1) (n2, d2))
-    | _ -> raise (NonRational (sprintf "r = %s, arg' = %s" (string_of_expr r) (string_of_expr arg')))
+    | Z (n), Z (m) -> (rational_of_ints (add_rational (n, 1) (m, 1)), nr)
+    | Z (n), Div (Z n1, Z d1) -> (rational_of_ints (add_rational (n, 1) (n1, d1)), nr)
+    | Div (Z n1, Z d1), Z (n) -> (rational_of_ints (add_rational (n1, d1) (n, 1)), nr)
+    | Div (Z n1, Z d1), Div (Z n2, Z d2) -> (rational_of_ints (add_rational (n1, d1) (n2, d2)), nr)
+    | _ -> (r, nr @ [arg'])
   in
-  List.fold_left f (Z 0) args
+  let (r, nr) = List.fold_left f (Z 0, []) args in
+  if nr = [] then r
+  else Add (r :: nr)
 and simplify_sub (args: expr list): expr =
-  (* Evaluate and subtract rationals *)
-  (* Once operations are implemented that do not necessarily evaluate to rationals, will need to accumulate those *)
-  let f r arg =
+  (* Add rationals and accumulate anything else *)
+  let f (r, nr) arg =
     let arg' = simplify arg in
     match r, arg' with
-    | Z (n), Z (m) -> rational_of_ints (add_rational (n, 1) (-m, 1))
-    | Z (n), Div (Z n1, Z d1) -> rational_of_ints (add_rational (n, 1) (-n1, d1))
-    | Div (Z n1, Z d1), Z (n) -> rational_of_ints (add_rational (n1, d1) (-n, 1))
-    | Div (Z n1, Z d1), Div (Z n2, Z d2) -> rational_of_ints (add_rational (n1, d1) (-n2, d2))
-    | _ -> raise (NonRational (sprintf "r = %s, arg' = %s" (string_of_expr r) (string_of_expr arg')))
+    | Z (n), Z (m) -> (rational_of_ints (add_rational (n, 1) (m, 1)), nr)
+    | Z (n), Div (Z n1, Z d1) -> (rational_of_ints (add_rational (n, 1) (n1, d1)), nr)
+    | Div (Z n1, Z d1), Z (n) -> (rational_of_ints (add_rational (n1, d1) (n, 1)), nr)
+    | Div (Z n1, Z d1), Div (Z n2, Z d2) -> (rational_of_ints (add_rational (n1, d1) (n2, d2)), nr)
+    | _ -> (r, nr @ [arg'])
   in
-  (* Assume the list has at least 2 elements (this was checked in the main simplify function) *)
-  List.fold_left f (simplify (List.hd args)) (List.tl args)
+  (* Assume the list has at least 1 element (this is checked in the main simplify function) *)
+  let first = simplify (List.hd args) in
+  (* Find the sum of all but the first term *)
+  let (r, nr) = List.fold_left f (Z 0, []) (List.tl args) in
+  (* Subtract the sum of the last terms from the first term *)
+  match first, r with
+    | Z (n), Z (m) ->
+        let r' = Z (n - m) in
+        if nr = [] then r' else Sub (r' :: nr)
+    | Z (n), Div (Z n1, Z d1) -> 
+        let r' = rational_of_ints (add_rational (n, 1) (-n1, d1)) in
+        if nr = [] then r' else Sub (r' :: nr)
+    | Div (Z n1, Z d1), Z (n) ->
+        let r' = rational_of_ints (add_rational (n1, d1) (-n, 1)) in
+        if nr = [] then r' else Sub (r' :: nr)
+    | Div (Z n1, Z d1), Div (Z n2, Z d2) ->
+        let r' = rational_of_ints (add_rational (n1, d1) (-n2, d2)) in
+        if nr = [] then r' else Sub (r' :: nr)
+    | _ -> Sub (first :: r :: nr)
 and simplify_mul (args: expr list): expr =
-  let f r arg =
+  (* Multiply rationals and accumulate everything else *)
+  let f (r, nr) arg =
     let arg' = simplify arg in
     match r, arg' with
-    | Z (n), Z (m) -> rational_of_ints (multiply_rational (n, 1) (m, 1))
-    | Z (n), Div (Z n1, Z d1) -> rational_of_ints (multiply_rational (n, 1) (n1, d1))
-    | Div (Z n1, Z d1), Z (n) -> rational_of_ints (multiply_rational (n1, d1) (n, 1))
-    | Div (Z n1, Z d1), Div (Z n2, Z d2) -> rational_of_ints (multiply_rational (n1, d1) (n2, d2))
-    | _ -> raise (NonRational (sprintf "r = %s, arg' = %s" (string_of_expr r) (string_of_expr arg')))
+    | Z (n), Z (m) -> (rational_of_ints (multiply_rational (n, 1) (m, 1)), nr)
+    | Z (n), Div (Z n1, Z d1) -> (rational_of_ints (multiply_rational (n, 1) (n1, d1)), nr)
+    | Div (Z n1, Z d1), Z (n) -> (rational_of_ints (multiply_rational (n1, d1) (n, 1)), nr)
+    | Div (Z n1, Z d1), Div (Z n2, Z d2) -> (rational_of_ints (multiply_rational (n1, d1) (n2, d2)), nr)
+    | _ -> (r, nr @ [arg'])
   in
-  List.fold_left f (Z 1) args
+  let (r, nr) = List.fold_left f (Z 1, []) args in
+  if nr = [] then r
+  else Mul (r :: nr)
 and simplify_div (e1: expr) (e2: expr): expr =
   if eval e2 [] = 0.0 then
     raise (Undefined (sprintf "Attempt to divide by zero in expression %s." (string_of_expr (Div (e1, e2)))))
@@ -263,4 +283,4 @@ and simplify_div (e1: expr) (e2: expr): expr =
     | Z (n), Div (Z n1, Z d1) -> rational_of_ints (multiply_rational (n, 1) (d1, n1))
     | Div (Z n1, Z d1), Z (n) -> rational_of_ints (multiply_rational (n1, d1) (1, n))
     | Div (Z n1, Z d1), Div (Z n2, Z d2) -> rational_of_ints (multiply_rational (n1, d1) (d2, n2))
-    | _ -> raise (NonRational (sprintf "e1' = %s, e2' = %s" (string_of_expr e1') (string_of_expr e2')))
+    | _ -> Div (e1', e2')
