@@ -460,26 +460,43 @@ let simplify_sub0 _ =
 let simplify_sub1 _ =
   assert_equal
     ~printer: string_of_expr
-    (Div (Z (-4), Z 5))
-    (simplify (Sub [Div (Z 3, Z 10); Z 1; Div (Z 1, Z 10)]))
+    (Div (Z (-8), Z 5))
+    (simplify (Sub [Div (Z 4, Z 10); Div (Z 9, Z 10); Z 1; Div (Z 1, Z 10)]))
 
 let simplify_sub2 _ =
   assert_equal
     ~printer: string_of_expr
-    (Z 1)
-    (simplify (Sub [Add [Z 1; Z 2]; Div (Z 1, Z 2); Div (Z 3, Z 2)]))
+    (Z (-3))
+    (simplify (Sub [Div (Z 1, Z 2); Add [Z 1; Z 2]; Div (Z 1, Z 2)]))
 
 let simplify_sub3 _ =
   assert_equal
     ~printer: string_of_expr
-    (Sub [Var "x"; Z 3])
-    (simplify (Sub [Var "x"; Z 1; Div (Z 4, Z 2)]))
+    (Sub [
+      Var "x";
+      Z 3;
+      Sub [Z 2; Var "y"]])
+    (simplify (
+      Sub [
+        Var "x";
+        Z 1;
+        Sub [Z 2; Div (Z 1, Z 2)];
+        Div (Z 1, Z 2);
+        Sub [Div (Z 5, Z 2); Var "y"; Div (Z 1, Z 2)]]))
 
 let simplify_sub4 _ =
   assert_equal
     ~printer: string_of_expr
-    (Sub [Div (Z 1, Z 2); Var "x"])
-    (simplify (Sub [Z 1; Var "x"; Div (Z 1, Z 2)]))
+    (Sub [
+      Div (Z 1, Z 2);
+      Var "x"; 
+      Sub [Div (Z (-2), Z 3); Var "y"]])
+    (simplify (
+      Sub [
+        Z 1;
+        Var "x";
+        Div (Z 1, Z 2);
+        Sub [Div (Z 1, Z 3); Var "y"; Z 1]]))
 
 let simplify_mul0 _ =
   assert_equal
