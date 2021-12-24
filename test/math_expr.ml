@@ -23,7 +23,7 @@ let rec has_div_by_zero (e: expr): bool =
   | Add es
   | Sub es
   | Mul es -> List.exists (fun arg -> has_div_by_zero arg) es
-  | Div (e1, e2) -> has_div_by_zero e1 || has_div_by_zero e2 || eval e2 = 0.0
+  | Div (e1, e2) -> has_div_by_zero e1 || has_div_by_zero e2 || eval e2 [] = 0.0
 
 let repeat (x: 'a) (n: int): 'a list =
   let rec repeat' n acc =
@@ -313,48 +313,48 @@ let string_of_expr_exc_test2 _ =
 let eval_int _ =
   assert_equal
     1.0
-    (eval (Z 1))
+    (eval (Z 1) [])
 
 let eval_add _ =
   assert_equal
     8.0
-    (eval (Add [Z (-1); Z 2; Add [Z 3; Z 4]]))
+    (eval (Add [Z (-1); Z 2; Add [Z 3; Z 4]]) [])
 
 let eval_sub _ =
   assert_equal
     4.0
-    (eval (Sub [Z 1; Z (-2); Sub [Z 3; Z 4]]))
+    (eval (Sub [Z 1; Z (-2); Sub [Z 3; Z 4]]) [])
 
 let eval_mul _ =
   assert_equal
     24.0
-    (eval (Mul [Z 1; Z 2; Mul [Z 3; Z 4]]))
+    (eval (Mul [Z 1; Z 2; Mul [Z 3; Z 4]]) [])
 
 let eval_div _ =
   assert_equal
     0.5
-    (eval (Div (Z 1, Div (Z 2, Z 1))))
+    (eval (Div (Z 1, Div (Z 2, Z 1))) [])
 
 (* eval: exceptions ------------------------------------------------------------------------------------------------- *)
 let eval_exc_div_by_zero _ =
   assert_raises
     (Undefined "Attempt to divide by zero in expression 1 / (1 - 1).")
-    (fun () -> eval (Div (Z 1, Sub [Z 1; Z 1])))
+    (fun () -> eval (Div (Z 1, Sub [Z 1; Z 1])) [])
 
 let eval_exc_add_num_args _ =
   assert_raises
     (InvalidExpr "Wrong number of arguments for operation Add.")
-    (fun () -> eval (Add [Z 1]))
+    (fun () -> eval (Add [Z 1]) [])
 
 let eval_exc_sub_num_args _ =
   assert_raises
     (InvalidExpr "Wrong number of arguments for operation Sub.")
-    (fun () -> eval (Sub [Z 1]))
+    (fun () -> eval (Sub [Z 1]) [])
 
 let eval_exc_mul_num_args _ =
   assert_raises
     (InvalidExpr "Wrong number of arguments for operation Mul.")
-    (fun () -> eval (Mul [Z 1]))
+    (fun () -> eval (Mul [Z 1]) [])
 
 (* simplify: values ------------------------------------------------------------------------------------------------- *)
 let simplify_int _ =

@@ -3,6 +3,7 @@ open Printf
 (* Types -------------------------------------------------------------------- *)
 type expr =
   | Z of int           (* Integer *)
+  | Var of string      (* Named variable *)
   | Add of expr list   (* e1 + e2 + e3 + ... *)
   | Sub of expr list   (* e1 - e2 - e3 - ... *)
   | Mul of expr list   (* e1 * e2 * e3 * ... *)
@@ -19,6 +20,7 @@ type expr_context = operation * int (* Parent operation and position (starting a
 (* Exceptions --------------------------------------------------------------- *)
 exception InvalidExpr of string
 exception Undefined of string
+exception UnknownVariable of string
 
 (* Helper functions --------------------------------------------------------- *)
 let repeat (x: 'a) (n: int): 'a list =
@@ -96,19 +98,19 @@ let string_of_expr (e: expr): string =
   in
   string_of_expr' None e
 
-let rec eval (e: expr): float =
+let rec eval (e: expr) (vals: (string * float) list): float =
   match e with
   | Z (n) -> float_of_int n
-  | Add (es) when List.length es >= 2 -> List.fold_left (fun acc e -> acc +. eval e) 0.0 es
+  | Add (es) when List.length es >= 2 -> List.fold_left (fun acc e -> acc +. eval e vals) 0.0 es
   | Add _ -> raise (InvalidExpr "Wrong number of arguments for operation Add.")
-  | Sub (e1::es) when List.length es >= 1 -> List.fold_left (fun acc e -> acc -. eval e) (eval e1) es
+  | Sub (e1::es) when List.length es >= 1 -> List.fold_left (fun acc e -> acc -. eval e vals) (eval e1 vals) es
   | Sub _ -> raise (InvalidExpr "Wrong number of arguments for operation Sub.")
-  | Mul (es) when List.length es >= 2 -> List.fold_left (fun acc e -> acc *. eval e) 1.0 es
+  | Mul (es) when List.length es >= 2 -> List.fold_left (fun acc e -> acc *. eval e vals) 1.0 es
   | Mul _ -> raise (InvalidExpr "Wrong number of arguments for operation Mul.")
   | Div (e1, e2) ->
-      let denom = eval e2 in
+      let denom = eval e2 vals in
       if denom = 0.0 then raise (Undefined (sprintf "Attempt to divide by zero in expression %s." (string_of_expr e)))
-      else let numer = eval e1 in
+      else let numer = eval e1 vals in
       numer /. denom
 
 let choose_next_element (min_depth: int) (min_const: int) (max_const: int): int =
@@ -146,7 +148,7 @@ and next_args (min_depth: int) (max_depth: int) (width: int) (min_const: int) (m
   List.map f (repeat () w)
 and get_nonzero (min_depth: int) (max_depth: int) (width: int) (min_const: int) (max_const: int): expr =
   let e = next_rand' min_depth max_depth width min_const max_const in
-  if eval e = 0.0 then get_nonzero min_depth max_depth width min_const max_const
+  if eval e [] = 0.0 then get_nonzero min_depth max_depth width min_const max_const
   else e
 
 let next_rand (min_depth: int) (max_depth: int) (width: int) (min_const: int) (max_const: int): expr =
@@ -243,7 +245,7 @@ and simplify_mul (args: expr list): expr =
   in
   List.fold_left f (Z 1) args
 and simplify_div (e1: expr) (e2: expr): expr =
-  if eval e2 = 0.0 then
+  if eval e2 [] = 0.0 then
     raise (Undefined (sprintf "Attempt to divide by zero in expression %s." (string_of_expr (Div (e1, e2)))))
   else
     let (e1', e2') = (simplify e1, simplify e2) in
