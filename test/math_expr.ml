@@ -524,10 +524,16 @@ let simplify_div2 _ =
     (simplify (Div (Add [Z 2; Z 3], Sub [Z 2; Var "x"; Z 1])))
 
 (* simplify: exceptions --------------------------------------------------------------------------------------------- *)
-let simplify_exc_div_by_zero _ =
+let simplify_exc_div_by_zero0 _ =
+  let e = Div (Z 1, Sub [Z 1; Z 1]) in
   assert_raises
-    (Undefined "Attempt to divide by zero in expression 1 / (1 - 1).")
-    (fun () -> simplify (Div (Z 1, Sub [Z 1; Z 1])))
+    (Undefined (sprintf "Attempt to divide by zero in expression %s." (string_of_expr e)))
+    (fun () -> simplify e)
+
+let simplify_exc_div_by_zero1 _ =
+  assert_raises
+    (Undefined (sprintf "Attempt to divide by zero in expression %s." (string_of_expr (Div (Var "x", Z 0)))))
+    (fun () -> simplify (Div (Z 1, Div (Var "x", Z 0))))
 
 let simplify_exc_add_num_args _ =
   assert_raises
@@ -615,7 +621,8 @@ let tests =
     "simplify_div0">:: simplify_div0;
     "simplify_div1">:: simplify_div1;
     "simplify_div2">:: simplify_div2;
-    "simplify_exc_div_by_zero">:: simplify_exc_div_by_zero;
+    "simplify_exc_div_by_zero0">:: simplify_exc_div_by_zero0;
+    "simplify_exc_div_by_zero1">:: simplify_exc_div_by_zero1;
     "simplify_exc_add_num_args">:: simplify_exc_add_num_args;
     "simplify_exc_sub_num_args">:: simplify_exc_sub_num_args;
     "simplify_exc_mul_num_args">:: simplify_exc_mul_num_args;
