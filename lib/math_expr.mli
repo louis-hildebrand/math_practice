@@ -1,6 +1,7 @@
 (** Math expression. *)
 type expr =
   | Z of int           (** Integer *)
+  | Var of string      (** Named variable *)
   | Add of expr list   (** e1 + e2 + e3 + ... *)
   | Sub of expr list   (** e1 - e2 - e3 - ... *)
   | Mul of expr list   (** e1 * e2 * e3 * ... *)
@@ -9,8 +10,15 @@ type expr =
 (** Expression is badly formed. *)
 exception InvalidExpr of string
 
-(** Expression involves an invalid operation (e.g. division by zero) *)
+(** Expression involves an invalid operation (e.g. division by zero). *)
 exception Undefined of string
+
+(** Attempt to evaluate an expression when some variables were not given a value. *)
+exception UndefinedVariable of string
+
+(** Attempt to evaluate an expression when some variables were given multiple values.
+    This exception is raised even if the values are all the same. *)
+exception MultipleDefinitions of string
 
 (** Initializes the random number generator. *)
 val init: unit -> unit
@@ -32,8 +40,8 @@ val next_rand: int -> int -> int -> int -> int -> expr
 (** Converts the given expression to a string. *)
 val string_of_expr: expr -> string
 
-(** Evaluates the given expression *)
-val eval: expr -> float
+(** Evaluates the given expression. *)
+val eval: expr -> (string * float) list -> float
 
-(** Simplifies the given expression *)
+(** Simplifies the given expression. *)
 val simplify: expr -> expr

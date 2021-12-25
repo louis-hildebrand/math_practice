@@ -6,7 +6,8 @@ open Printf
 (* Calculates the depth of an expression tree *)
 let rec depth (e: expr): int =
   match e with
-  | Z _ -> 0
+  | Z _
+  | Var _ -> 0
   | Add es
   | Sub es
   | Mul es -> 1 + (List.fold_left (fun acc e -> max acc (depth e)) 0 es)
@@ -19,11 +20,12 @@ let rec tabulate (origin: int) (dest: int): int list =
 
 let rec has_div_by_zero (e: expr): bool =
   match e with
-  | Z _ -> false
+  | Z _
+  | Var _ -> false
   | Add es
   | Sub es
   | Mul es -> List.exists (fun arg -> has_div_by_zero arg) es
-  | Div (e1, e2) -> has_div_by_zero e1 || has_div_by_zero e2 || eval e2 = 0.0
+  | Div (e1, e2) -> has_div_by_zero e1 || has_div_by_zero e2 || (try eval e2 [] = 0.0 with UndefinedVariable _ -> false)
 
 let repeat (x: 'a) (n: int): 'a list =
   let rec repeat' n acc =
@@ -48,6 +50,7 @@ let (random_consts: int list) =
   let rec get_consts e = 
     match e with
     | Z (n) -> [n]
+    | Var _ -> []
     | Add es
     | Sub es 
     | Mul es -> List.fold_left (fun acc arg -> acc @ (get_consts arg)) [] es
@@ -93,7 +96,8 @@ let next_rand_max_width _ =
   (* Asserts a failure if there is any operation in e with more than w arguments *)
   let rec f w e =
     match e with
-    | Z _ -> ()
+    | Z _
+    | Var _ -> ()
     | Add es
     | Sub es
     | Mul es ->
@@ -194,6 +198,13 @@ let string_of_expr_int_negative _ =
     "-1"
     (string_of_expr (Z (-1)))
 
+(* Variable *)
+let string_of_expr_var _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "x"
+    (string_of_expr (Var "x"))
+
 (* Add *)
 let string_of_expr_add _ =
   assert_equal
@@ -227,8 +238,8 @@ let string_of_expr_div _ =
 let string_of_expr_order_add_add _ =
   assert_equal
     ~printer: (fun x -> x)
-    "1 + 2 + 3 + 4"
-    (string_of_expr (Add [Add [Z 1; Z 2]; Add [Z 3; Z 4]]))
+    "1 + x + y + 4"
+    (string_of_expr (Add [Add [Z 1; Var "x"]; Add [Var "y"; Z 4]]))
 
 (* Add / Sub *)
 let string_of_expr_order_add_sub _ =
@@ -255,8 +266,8 @@ let string_of_expr_order_add_div _ =
 let string_of_expr_order_sub_sub _ =
   assert_equal
     ~printer: (fun x -> x)
-    "1 - 2 - (3 - 4)"
-    (string_of_expr (Sub [Sub [Z 1; Z 2]; Sub [Z 3; Z 4]]))
+    "x - 2 - (3 - y)"
+    (string_of_expr (Sub [Sub [Var "x"; Z 2]; Sub [Z 3; Var "y"]]))
 
 (* Sub / Mul *)
 let string_of_expr_order_sub_mul _ =
@@ -276,8 +287,8 @@ let string_of_expr_order_sub_div _ =
 let string_of_expr_order_mul_mul _ =
   assert_equal
     ~printer: (fun x -> x)
-    "1 * 2 * 3 * 4"
-    (string_of_expr (Mul [Mul [Z 1; Z 2]; Mul [Z 3; Z 4]]))
+    "x * 2 * 3 * y"
+    (string_of_expr (Mul [Mul [Var "x"; Z 2]; Mul [Z 3; Var "y"]]))
 
 (* Mul / Div *)
 let string_of_expr_order_mul_div _ =
@@ -290,8 +301,8 @@ let string_of_expr_order_mul_div _ =
 let string_of_expr_order_div_div _ =
   assert_equal
     ~printer: (fun x -> x)
-    "1 / 2 / (3 / 4)"
-    (string_of_expr (Div (Div (Z 1, Z 2), Div (Z 3, Z 4))))
+    "1 / x / (y / 4)"
+    (string_of_expr (Div (Div (Z 1, Var "x"), Div (Var "y", Z 4))))
 
 (* string_of_expr: exceptions --------------------------------------------------------------------------------------- *)
 let string_of_expr_exc_test0 _ =
@@ -312,49 +323,96 @@ let string_of_expr_exc_test2 _ =
 (* eval: values ----------------------------------------------------------------------------------------------------- *)
 let eval_int _ =
   assert_equal
+    ~printer: string_of_float
     1.0
-    (eval (Z 1))
+    (eval (Z 1) [])
 
-let eval_add _ =
+let eval_var _ =
   assert_equal
+    ~printer: string_of_float
+    2.1
+    (eval (Var "x") [("x", 2.1)])
+
+let eval_add_novars _ =
+  assert_equal
+    ~printer: string_of_float
     8.0
-    (eval (Add [Z (-1); Z 2; Add [Z 3; Z 4]]))
+    (eval (Add [Z (-1); Z 2; Add [Z 3; Z 4]]) [])
 
-let eval_sub _ =
+let eval_add_vars _ =
   assert_equal
+    ~printer: string_of_float
+    ~cmp: (cmp_float ~epsilon:0.000000000000001)
+    (-6.8)
+    (eval (Add [Var "x"; Z (-1); Add [Z 2; Var "y"]]) [("x", 3.1); ("y", -10.9)])
+
+let eval_sub_novars _ =
+  assert_equal
+    ~printer: string_of_float
     4.0
-    (eval (Sub [Z 1; Z (-2); Sub [Z 3; Z 4]]))
+    (eval (Sub [Z 1; Z (-2); Sub [Z 3; Z 4]]) [])
 
-let eval_mul _ =
+let eval_sub_vars _ =
   assert_equal
+    ~printer: string_of_float
+    ~cmp: (cmp_float ~epsilon:0.000000000000001)
+    (-0.8)
+    (eval (Sub [Var "y"; Z 1; Var "x"]) [("x", 0.1); ("y", 0.3)])
+
+let eval_mul_novars _ =
+  assert_equal
+    ~printer: string_of_float
     24.0
-    (eval (Mul [Z 1; Z 2; Mul [Z 3; Z 4]]))
+    (eval (Mul [Z 1; Z 2; Mul [Z 3; Z 4]]) [])
 
-let eval_div _ =
+let eval_mul_vars _ =
   assert_equal
+    ~printer: string_of_float
+    24.0
+    (eval (Mul [Var "x"; Var "y"; Var "z"; Z 4]) [("x", 1.0); ("y", 2.0); ("z", 3.0)])
+
+let eval_div_novars _ =
+  assert_equal
+    ~printer: string_of_float
     0.5
-    (eval (Div (Z 1, Div (Z 2, Z 1))))
+    (eval (Div (Z 1, Div (Z 2, Z 1))) [])
+
+let eval_div_vars _ =
+  assert_equal
+    ~printer: string_of_float
+    6.0
+    (eval (Div (Var "y", Div (Z 1, Var "x"))) [("x", 2.0); ("y", 3.0)])
 
 (* eval: exceptions ------------------------------------------------------------------------------------------------- *)
 let eval_exc_div_by_zero _ =
   assert_raises
     (Undefined "Attempt to divide by zero in expression 1 / (1 - 1).")
-    (fun () -> eval (Div (Z 1, Sub [Z 1; Z 1])))
+    (fun () -> eval (Div (Z 1, Sub [Z 1; Z 1])) [])
 
 let eval_exc_add_num_args _ =
   assert_raises
     (InvalidExpr "Wrong number of arguments for operation Add.")
-    (fun () -> eval (Add [Z 1]))
+    (fun () -> eval (Add [Z 1]) [])
 
 let eval_exc_sub_num_args _ =
   assert_raises
     (InvalidExpr "Wrong number of arguments for operation Sub.")
-    (fun () -> eval (Sub [Z 1]))
+    (fun () -> eval (Sub [Z 1]) [])
 
 let eval_exc_mul_num_args _ =
   assert_raises
     (InvalidExpr "Wrong number of arguments for operation Mul.")
-    (fun () -> eval (Mul [Z 1]))
+    (fun () -> eval (Mul [Z 1]) [])
+
+let eval_exc_unknown_var0 _ =
+  assert_raises
+    (UndefinedVariable "No definition provided for variable 'y'.")
+    (fun () -> eval (Add [Var "x"; Z 1; Var "y"]) [("x", 1.0)])
+
+let eval_exc_unknown_var1 _ =
+  assert_raises
+    (MultipleDefinitions "Multiple definitions provided for variable 'y' (e.g. 2.123, 2.123).")
+    (fun () -> eval (Add [Var "x"; Z 1; Var "y"]) [("x", 1.0); ("y", 2.123); ("y", 2.123)])
 
 (* simplify: values ------------------------------------------------------------------------------------------------- *)
 let simplify_int _ =
@@ -362,6 +420,12 @@ let simplify_int _ =
     ~printer: string_of_expr
     (Z 1)
     (simplify (Z 1))
+
+let simplify_var _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Var "x")
+    (simplify (Var "x"))
 
 let simplify_add0 _ =
   assert_equal
@@ -381,6 +445,18 @@ let simplify_add2 _ =
     (Z 2)
     (simplify (Add [Z (-5); Mul [Z 2; Z 3]; Div (Z 1, Z 2); Div (Z 1, Z 2)]))
 
+let simplify_add3 _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Add [Z 3; Var "x"])
+    (simplify (Add [Z 1; Div (Z 3, Z 2); Add [Var "x"; Z 0]; Div (Z 1, Z 2)]))
+
+let simplify_add4 _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Var "x")
+    (simplify (Add [Z 1; Var "x"; Z (-1)]))
+
 let simplify_sub0 _ =
   assert_equal
     ~printer: string_of_expr
@@ -390,14 +466,55 @@ let simplify_sub0 _ =
 let simplify_sub1 _ =
   assert_equal
     ~printer: string_of_expr
-    (Div (Z (-4), Z 5))
-    (simplify (Sub [Div (Z 3, Z 10); Z 1; Div (Z 1, Z 10)]))
+    (Div (Z (-8), Z 5))
+    (simplify (Sub [Div (Z 4, Z 10); Div (Z 9, Z 10); Z 1; Div (Z 1, Z 10)]))
 
 let simplify_sub2 _ =
   assert_equal
     ~printer: string_of_expr
-    (Z 1)
-    (simplify (Sub [Add [Z 1; Z 2]; Div (Z 1, Z 2); Div (Z 3, Z 2)]))
+    (Z (-3))
+    (simplify (Sub [Div (Z 1, Z 2); Add [Z 1; Z 2]; Div (Z 1, Z 2)]))
+
+let simplify_sub3 _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Sub [
+      Var "x";
+      Z 3;
+      Sub [Z 2; Var "y"]])
+    (simplify (
+      Sub [
+        Var "x";
+        Z 1;
+        Sub [Z 2; Div (Z 1, Z 2)];
+        Div (Z 1, Z 2);
+        Sub [Div (Z 5, Z 2); Var "y"; Div (Z 1, Z 2)]]))
+
+let simplify_sub4 _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Sub [
+      Div (Z 1, Z 2);
+      Var "x"; 
+      Sub [Div (Z (-2), Z 3); Var "y"]])
+    (simplify (
+      Sub [
+        Z 1;
+        Var "x";
+        Div (Z 1, Z 2);
+        Sub [Div (Z 1, Z 3); Var "y"; Z 1]]))
+
+let simplify_sub5 _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Var "x")
+    (simplify (Sub [Var "x"; Z 1; Z (-1)]))
+
+let simplify_sub6 _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Sub [Z 0; Var "x"])
+    (simplify (Sub [Z 1; Var "x"; Z 1]))
 
 let simplify_mul0 _ =
   assert_equal
@@ -417,6 +534,30 @@ let simplify_mul2 _ =
     (Z 3)
     (simplify (Mul [Add [Z 1; Z 2]; Div (Z 5, Z 3); Div (Z 9, Z 15)]))
 
+let simplify_mul3 _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Mul [Z 8; Var "x"])
+    (simplify (Mul [Z 1; Z 2; Mul [Var "x"; Z 1]; Z 4]))
+
+let simplify_mul4 _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Z 0)
+    (simplify (Mul [Z 1; Var "x"; Z 0]))
+
+let simplify_mul5 _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Var "x")
+    (simplify (Mul [Div (Z 1, Z 2); Var "x"; Div (Z 2, Z 1)]))
+
+let simplify_mul6 _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Mul [Var "x"; Var "y"])
+    (simplify (Mul [Div (Z 1, Z 2); Var "x"; Div (Z 2, Z 1); Var "y"]))
+
 let simplify_div0 _ =
   assert_equal
     ~printer: string_of_expr
@@ -429,11 +570,35 @@ let simplify_div1 _ =
     (Div (Z 2, Z 3))
     (simplify (Div (Div (Z 1, Div (Z 5, Z (-2))), Div (Div (Z 9, Z 5), Z (-3)))))
 
+let simplify_div2 _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Div (Z 5, Sub [Z 1; Var "x"]))
+    (simplify (Div (Add [Z 2; Z 3], Sub [Z 2; Var "x"; Z 1])))
+
+let simplify_div3 _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Z 0)
+    (simplify (Div (Add [Z 1; Z (-1)], Var "x")))
+
+let simplify_div4 _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Var "x")
+    (simplify (Div (Div (Var "x", Z 1), Add [Z 2; Z (-1)])))
+
 (* simplify: exceptions --------------------------------------------------------------------------------------------- *)
-let simplify_exc_div_by_zero _ =
+let simplify_exc_div_by_zero0 _ =
+  let e = Div (Z 1, Sub [Z 1; Z 1]) in
   assert_raises
-    (Undefined "Attempt to divide by zero in expression 1 / (1 - 1).")
-    (fun () -> simplify (Div (Z 1, Sub [Z 1; Z 1])))
+    (Undefined (sprintf "Attempt to divide by zero in expression %s." (string_of_expr e)))
+    (fun () -> simplify e)
+
+let simplify_exc_div_by_zero1 _ =
+  assert_raises
+    (Undefined (sprintf "Attempt to divide by zero in expression %s." (string_of_expr (Div (Var "x", Z 0)))))
+    (fun () -> simplify (Div (Z 1, Div (Var "x", Z 0))))
 
 let simplify_exc_add_num_args _ =
   assert_raises
@@ -470,6 +635,7 @@ let tests =
     "next_rand_exc_min_const_equal_max_const">:: next_rand_exc_min_const_equal_max_const;
     "string_of_expr_int_positive">:: string_of_expr_int_positive;
     "string_of_expr_int_negative">:: string_of_expr_int_negative;
+    "string_of_expr_var">:: string_of_expr_var;
     "string_of_expr_add">:: string_of_expr_add;
     "string_of_expr_sub">:: string_of_expr_sub;
     "string_of_expr_mul">:: string_of_expr_mul;
@@ -488,27 +654,48 @@ let tests =
     "string_of_expr_exc_test1">:: string_of_expr_exc_test1;
     "string_of_expr_exc_test2">:: string_of_expr_exc_test2;
     "eval_int">:: eval_int;
-    "eval_add">:: eval_add;
-    "eval_sub">:: eval_sub;
-    "eval_mul">:: eval_mul;
-    "eval_div">:: eval_div;
+    "eval_var">:: eval_var;
+    "eval_add_novars">:: eval_add_novars;
+    "eval_add_vars">:: eval_add_vars;
+    "eval_sub_novars">:: eval_sub_novars;
+    "eval_sub_vars">:: eval_sub_vars;
+    "eval_mul_novars">:: eval_mul_novars;
+    "eval_mul_vars">:: eval_mul_vars;
+    "eval_div_novars">:: eval_div_novars;
+    "eval_div_vars">:: eval_div_vars;
     "eval_exc_div_by_zero">:: eval_exc_div_by_zero;
     "eval_exc_add_num_args">:: eval_exc_add_num_args;
     "eval_exc_sub_num_args">:: eval_exc_sub_num_args;
     "eval_exc_mul_num_args">:: eval_exc_mul_num_args;
+    "eval_exc_unknown_var0">:: eval_exc_unknown_var0;
+    "eval_exc_unknown_var1">:: eval_exc_unknown_var1;
     "simplify_int">:: simplify_int;
     "simplify_add0">:: simplify_add0;
     "simplify_add1">:: simplify_add1;
     "simplify_add2">:: simplify_add2;
+    "simplify_add3">:: simplify_add3;
+    "simplify_add4">:: simplify_add4;
     "simplify_sub0">:: simplify_sub0;
     "simplify_sub1">:: simplify_sub1;
     "simplify_sub2">:: simplify_sub2;
+    "simplify_sub3">:: simplify_sub3;
+    "simplify_sub4">:: simplify_sub4;
+    "simplify_sub5">:: simplify_sub5;
+    "simplify_sub6">:: simplify_sub6;
     "simplify_mul0">:: simplify_mul0;
     "simplify_mul1">:: simplify_mul1;
     "simplify_mul2">:: simplify_mul2;
+    "simplify_mul3">:: simplify_mul3;
+    "simplify_mul4">:: simplify_mul4;
+    "simplify_mul5">:: simplify_mul5;
+    "simplify_mul6">:: simplify_mul6;
     "simplify_div0">:: simplify_div0;
     "simplify_div1">:: simplify_div1;
-    "simplify_exc_div_by_zero">:: simplify_exc_div_by_zero;
+    "simplify_div2">:: simplify_div2;
+    "simplify_div3">:: simplify_div3;
+    "simplify_div4">:: simplify_div4;
+    "simplify_exc_div_by_zero0">:: simplify_exc_div_by_zero0;
+    "simplify_exc_div_by_zero1">:: simplify_exc_div_by_zero1;
     "simplify_exc_add_num_args">:: simplify_exc_add_num_args;
     "simplify_exc_sub_num_args">:: simplify_exc_sub_num_args;
     "simplify_exc_mul_num_args">:: simplify_exc_mul_num_args;
