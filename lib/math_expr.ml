@@ -235,7 +235,10 @@ and simplify_add (args: expr list): expr =
   in
   let (r, nr) = List.fold_left f (Z 0, []) args in
   if nr = [] then r
-  else Add (r :: nr)
+  else
+    let addends = if r = Z 0 then nr else r :: nr in
+    if List.length addends = 1 then List.hd addends
+    else Add (r :: nr)
 and simplify_sub (args: expr list): expr =
   (* Add rationals and accumulate anything else *)
   let f (r, nr) arg =
@@ -265,7 +268,10 @@ and simplify_sub (args: expr list): expr =
     | Div (Z n1, Z d1), Div (Z n2, Z d2) ->
         let r' = rational_of_ints (add_rational (n1, d1) (-n2, d2)) in
         if nr = [] then r' else Sub (r' :: nr)
-    | _ -> Sub (first :: r :: nr)
+    | _ ->
+        let args = if r = Z 0 then first :: nr else first :: r :: nr in
+        if List.length args = 1 then List.hd args
+        else Sub (args)
 and simplify_mul (args: expr list): expr =
   (* Multiply rationals and accumulate everything else *)
   let f (r, nr) arg =
@@ -279,7 +285,11 @@ and simplify_mul (args: expr list): expr =
   in
   let (r, nr) = List.fold_left f (Z 1, []) args in
   if nr = [] then r
-  else Mul (r :: nr)
+  else if r = Z 0 then Z 0
+  else
+    let factors = if r = Z 1 then nr else r :: nr in
+    if List.length factors = 1 then List.hd factors
+    else Mul factors
 and simplify_div (e1: expr) (e2: expr): expr =
   let denom_identically_zero = equals e2 (Z 0) in
   if denom_identically_zero then
@@ -291,4 +301,6 @@ and simplify_div (e1: expr) (e2: expr): expr =
     | Z (n), Div (Z n1, Z d1) -> rational_of_ints (multiply_rational (n, 1) (d1, n1))
     | Div (Z n1, Z d1), Z (n) -> rational_of_ints (multiply_rational (n1, d1) (1, n))
     | Div (Z n1, Z d1), Div (Z n2, Z d2) -> rational_of_ints (multiply_rational (n1, d1) (d2, n2))
+    | Z (0), _ -> Z (0)
+    | _, Z (1) -> e1'
     | _ -> Div (e1', e2')
