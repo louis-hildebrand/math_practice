@@ -1,6 +1,11 @@
 name: Main workflow
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+  workflow_dispatch:
 
 jobs:
   build:
@@ -10,7 +15,7 @@ jobs:
         os:
           - macos-latest
           - ubuntu-latest
-          - windows-latest
+          # - windows-latest
         ocaml-compiler:
           - 4.05.0
     runs-on: ${{ matrix.os }}
