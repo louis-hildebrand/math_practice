@@ -460,23 +460,35 @@ let simplify_int _ =
     (Z 1)
     (simplify (Z 1))
 
+let simplify_neg_int _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Z (-1))
+    (simplify (Neg (Z 1)))
+
 let simplify_var _ =
   assert_equal
     ~printer: string_of_expr
     (Var "x")
     (simplify (Var "x"))
 
+let simplify_neg_var _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Neg (Var "x"))
+    (simplify (Neg (Var "x")))
+
 let simplify_add0 _ =
   assert_equal
     ~printer: string_of_expr
     (Z 2)
-    (simplify (Add [Z (-4); Z 1; Z 5]))
+    (simplify (Add [Z (-4); Neg (Z 1); Z 7]))
 
 let simplify_add1 _ =
   assert_equal
     ~printer: string_of_expr
-    (Div (Z 9, Z 5))
-    (simplify (Add [Div (Z 7, Z 10); Z 1; Div (Z 1, Z 10)]))
+    (Div (Z 6, Z 5))
+    (simplify (Add [Div (Z 3, Z 10); Z 1; Neg (Div (Z 1, Z 10))]))
 
 let simplify_add2 _ =
   assert_equal
@@ -499,14 +511,14 @@ let simplify_add4 _ =
 let simplify_mul0 _ =
   assert_equal
     ~printer: string_of_expr
-    (Z (-6))
-    (simplify (Mul [Z 1; Z 2; Z (-3)]))
+    (Z 6)
+    (simplify (Mul [Z 1; Neg (Z 2); Z (-3)]))
 
 let simplify_mul1 _ =
   assert_equal
     ~printer: string_of_expr
-    (Div (Z 5, Z 3))
-    (simplify (Mul [Div (Z 1, Z 2); Z 5; Div (Z 2, Z 3)]))
+    (Div (Z (-5), Z 3))
+    (simplify (Mul [Neg (Div (Z 1, Z 2)); Z 5; Div (Z 2, Z 3)]))
 
 let simplify_mul2 _ =
   assert_equal
@@ -541,8 +553,8 @@ let simplify_mul6 _ =
 let simplify_div0 _ =
   assert_equal
     ~printer: string_of_expr
-    (Z 2)
-    (simplify (Div (Z 4, Z 2)))
+    (Z (-2))
+    (simplify (Div (Neg (Z 4), Z 2)))
 
 let simplify_div1 _ =
   assert_equal
@@ -653,6 +665,9 @@ let tests =
     "eval_exc_unknown_var0">:: eval_exc_unknown_var0;
     "eval_exc_unknown_var1">:: eval_exc_unknown_var1;
     "simplify_int">:: simplify_int;
+    "simplify_neg_int">:: simplify_neg_int;
+    "simplify_var">:: simplify_var;
+    "simplify_neg_var">:: simplify_neg_var;
     "simplify_add0">:: simplify_add0;
     "simplify_add1">:: simplify_add1;
     "simplify_add2">:: simplify_add2;
