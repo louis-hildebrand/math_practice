@@ -8,6 +8,7 @@ let rec depth (e: expr): int =
   match e with
   | Z _
   | Var _ -> 0
+  | Neg e -> depth e
   | Add es
   | Mul es -> 1 + (List.fold_left (fun acc e -> max acc (depth e)) 0 es)
   | Div (e1, e2) -> 1 + max (depth e1) (depth e2)
@@ -21,6 +22,7 @@ let rec has_div_by_zero (e: expr): bool =
   match e with
   | Z _
   | Var _ -> false
+  | Neg e -> has_div_by_zero e
   | Add es
   | Mul es -> List.exists (fun arg -> has_div_by_zero arg) es
   | Div (e1, e2) -> has_div_by_zero e1 || has_div_by_zero e2 || (try eval e2 [] = 0.0 with UndefinedVariable _ -> false)
@@ -49,6 +51,7 @@ let (random_consts: int list) =
     match e with
     | Z (n) -> [n]
     | Var _ -> []
+    | Neg e -> get_consts e
     | Add es
     | Mul es -> List.fold_left (fun acc arg -> acc @ (get_consts arg)) [] es
     | Div (e1, e2) -> (get_consts e1) @ (get_consts e2)
@@ -94,7 +97,8 @@ let next_rand_max_width _ =
   let rec f w e =
     match e with
     | Z _
-    | Var _ -> ()
+    | Var _
+    | Neg _ -> ()
     | Add es
     | Mul es ->
         if List.length es > w then 
@@ -180,47 +184,131 @@ let next_rand_exc_min_const_equal_max_const _ =
     (fun () -> next_rand 0 0 2 0 0)
 
 (* string_of_expr: single operations -------------------------------------------------------------------------------- *)
-(* Z (positive) *)
 let string_of_expr_int_positive _ =
   assert_equal
     ~printer: (fun x -> x)
     "1"
     (string_of_expr (Z 1))
 
-(* Z (negative) *)
 let string_of_expr_int_negative _ =
   assert_equal
     ~printer: (fun x -> x)
     "-1"
     (string_of_expr (Z (-1)))
 
-(* Variable *)
+let string_of_expr_neg_int_positive _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    (string_of_expr (Z (-1)))
+    (string_of_expr (Neg (Z 1)))
+
+let string_of_expr_neg_int_negative _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "-(-1)"
+    (string_of_expr (Neg (Z (-1))))
+
 let string_of_expr_var _ =
   assert_equal
     ~printer: (fun x -> x)
     "x"
     (string_of_expr (Var "x"))
 
-(* Add *)
-let string_of_expr_add _ =
+let string_of_expr_neg_var _ =
   assert_equal
     ~printer: (fun x -> x)
-    "1 + 2 + (-3)"
+    "-x"
+    (string_of_expr (Neg (Var "x")))
+
+let string_of_expr_add0 _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "1 + 2 - 3"
     (string_of_expr (Add [Z 1; Z 2; Z (-3)]))
 
-(* Mul *)
-let string_of_expr_mul _ =
+let string_of_expr_add1 _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "-1 + 2 + 3"
+    (string_of_expr (Add [Z (-1); Z 2; Z 3]))
+
+let string_of_expr_add_neg0 _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    (string_of_expr (Add [Z 1; Z 2; Z (-3)]))
+    (string_of_expr (Add [Z 1; Z 2; Neg (Z 3)]))
+
+let string_of_expr_add_neg1 _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    (string_of_expr (Add [Z (-1); Z 2; Z 3]))
+    (string_of_expr (Add [Neg (Z 1); Z 2; Z 3]))
+
+let string_of_expr_neg_add _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "-(1 + 2 - 3)"
+    (string_of_expr (Neg (Add [Z 1; Z 2; Z (-3)])))
+
+let string_of_expr_mul0 _ =
   assert_equal
     ~printer: (fun x -> x)
     "1 * 2 * (-3)"
     (string_of_expr (Mul [Z 1; Z 2; Z (-3)]))
 
-(* Div *)
-let string_of_expr_div _ =
+let string_of_expr_mul1 _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "-1 * 2 * 3"
+    (string_of_expr (Mul [Z (-1); Z 2; Z 3]))
+
+let string_of_expr_mul_neg0 _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    (string_of_expr (Mul [Z 1; Z 2; Z (-3)]))
+    (string_of_expr (Mul [Z 1; Z 2; Neg (Z 3)]))
+
+let string_of_expr_mul_neg1 _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    (string_of_expr (Mul [Z (-1); Z 2; Z 3]))
+    (string_of_expr (Mul [Neg (Z 1); Z 2; Z 3]))
+
+let string_of_expr_neg_mul _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "-(1 * 2 * (-3))"
+    (string_of_expr (Neg (Mul [Z 1; Z 2; Neg (Z 3)])))
+
+let string_of_expr_div0 _ =
   assert_equal
     ~printer: (fun x -> x)
     "2 / (-1)"
     (string_of_expr (Div (Z 2, Z (-1))))
+
+let string_of_expr_div1 _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "-2 / 1"
+    (string_of_expr (Div (Z (-2), Z 1)))
+
+let string_of_expr_div_neg0 _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    (string_of_expr (Div (Z 2, Z (-1))))
+    (string_of_expr (Div (Z 2, Neg (Z 1))))
+
+let string_of_expr_div_neg1 _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    (string_of_expr (Div (Z (-2), Z 1)))
+    (string_of_expr (Div (Neg (Z 2), Z 1)))
+
+let string_of_expr_neg_div _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "-(2 / (-1))"
+    (string_of_expr (Neg (Div (Z 2, Z (-1)))))
 
 (* string_of_expr: order of operations ------------------------------------------------------------------------------ *)
 (* Add / Add *)
@@ -509,10 +597,25 @@ let tests =
     "next_rand_exc_min_const_equal_max_const">:: next_rand_exc_min_const_equal_max_const;
     "string_of_expr_int_positive">:: string_of_expr_int_positive;
     "string_of_expr_int_negative">:: string_of_expr_int_negative;
+    "string_of_expr_neg_int_positive">:: string_of_expr_neg_int_positive;
+    "string_of_expr_neg_int_negative">:: string_of_expr_neg_int_negative;
     "string_of_expr_var">:: string_of_expr_var;
-    "string_of_expr_add">:: string_of_expr_add;
-    "string_of_expr_mul">:: string_of_expr_mul;
-    "string_of_expr_div">:: string_of_expr_div;
+    "string_of_expr_neg_var">:: string_of_expr_neg_var;
+    "string_of_expr_add0">:: string_of_expr_add0;
+    "string_of_expr_add1">:: string_of_expr_add1;
+    "string_of_expr_add_neg0">:: string_of_expr_add_neg0;
+    "string_of_expr_add_neg1">:: string_of_expr_add_neg1;
+    "string_of_expr_neg_add">:: string_of_expr_neg_add;
+    "string_of_expr_mul0">:: string_of_expr_mul0;
+    "string_of_expr_mul1">:: string_of_expr_mul1;
+    "string_of_expr_mul_neg0">:: string_of_expr_mul_neg0;
+    "string_of_expr_mul_neg1">:: string_of_expr_mul_neg1;
+    "string_of_expr_neg_mul">:: string_of_expr_neg_mul;
+    "string_of_expr_div0">:: string_of_expr_div0;
+    "string_of_expr_div1">:: string_of_expr_div1;
+    "string_of_expr_div_neg0">:: string_of_expr_div_neg0;
+    "string_of_expr_div_neg1">:: string_of_expr_div_neg1;
+    "string_of_expr_neg_div">:: string_of_expr_neg_div;
     "string_of_expr_order_add_add">:: string_of_expr_order_add_add;
     "string_of_expr_order_add_mul">:: string_of_expr_order_add_mul;
     "string_of_expr_order_add_div">:: string_of_expr_order_add_div;
