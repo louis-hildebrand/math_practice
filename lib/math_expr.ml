@@ -4,14 +4,14 @@ open Printf
 type expr =
   | Z of int           (* Integer *)
   | Var of string      (* Named variable *)
+  | Neg of expr        (* -e1 *)
   | Add of expr list   (* e1 + e2 + e3 + ... *)
-  | Sub of expr list   (* e1 - e2 - e3 - ... *)
   | Mul of expr list   (* e1 * e2 * e3 * ... *)
   | Div of expr * expr (* e1 / e2 *)
 
 type operation =
+  | ONeg
   | OAdd
-  | OSub
   | OMul
   | ODiv
 
@@ -55,26 +55,11 @@ let string_of_expr (e: expr): string =
         let (_, final) = List.fold_left append (1, init) es in
         (match ctxt with
         | None
-        | Some (OAdd, _)
-        | Some (OSub, 0) -> final
-        | Some (OSub, _)
+        | Some (OAdd, _) -> final
         | Some (OMul, _)
         | Some (ODiv, _) -> "(" ^ final ^ ")")
     | Add _ ->
         raise (InvalidExpr "Wrong number of arguments for operation Add.")
-    | Sub (e1::es) when List.length es >= 1 ->
-        let init = string_of_expr' (Some (OSub, 0)) e1 in
-        let append = fun (i, acc) e -> (i + 1, acc ^ " - " ^ (string_of_expr' (Some (OSub, i)) e)) in
-        let (_, final) = List.fold_left append (1, init) es in
-        (match ctxt with
-        | None
-        | Some (OAdd, _)
-        | Some (OSub, 0) -> final
-        | Some (OSub, _)
-        | Some (OMul, _)
-        | Some (ODiv, _) -> "(" ^ final ^ ")")
-    | Sub _ ->
-        raise (InvalidExpr "Wrong number of arguments for operation Sub.")
     | Mul (e1::es) when List.length es >= 1 ->
         let init = string_of_expr' (Some (OMul, 0)) e1 in
         let append = fun (i, acc) e -> (i + 1, acc ^ " * " ^ (string_of_expr' (Some (OMul, i)) e)) in
@@ -82,7 +67,6 @@ let string_of_expr (e: expr): string =
         (match ctxt with
         | None
         | Some (OAdd, _)
-        | Some (OSub, _)
         | Some (OMul, _)
         | Some (ODiv, 0) -> final
         | Some (ODiv, _) -> "(" ^ final ^ ")")
@@ -93,7 +77,6 @@ let string_of_expr (e: expr): string =
         (match ctxt with
         | None
         | Some (OAdd, _)
-        | Some (OSub, _)
         | Some (OMul, _)
         | Some (ODiv, 0) -> final
         | Some (ODiv, _) -> "(" ^ final ^ ")")
@@ -112,8 +95,6 @@ let rec eval (e: expr) (vals: (string * float) list): float =
           (sprintf "Multiple definitions provided for variable '%s' (e.g. %g, %g)." name v1 v2)))
   | Add (es) when List.length es >= 2 -> List.fold_left (fun acc e -> acc +. eval e vals) 0.0 es
   | Add _ -> raise (InvalidExpr "Wrong number of arguments for operation Add.")
-  | Sub (e1::es) when List.length es >= 1 -> List.fold_left (fun acc e -> acc -. eval e vals) (eval e1 vals) es
-  | Sub _ -> raise (InvalidExpr "Wrong number of arguments for operation Sub.")
   | Mul (es) when List.length es >= 2 -> List.fold_left (fun acc e -> acc *. eval e vals) 1.0 es
   | Mul _ -> raise (InvalidExpr "Wrong number of arguments for operation Mul.")
   | Div (e1, e2) ->
@@ -122,12 +103,18 @@ let rec eval (e: expr) (vals: (string * float) list): float =
       else let numer = eval e1 vals in
       numer /. denom
 
-let choose_next_element (min_depth: int) (min_const: int) (max_const: int): int =
-  let allowed = [1; 2; 3] in
+type arithmetic_element =
+  | AInt
+  | AAdd
+  | AMul
+  | ADiv
+
+let choose_next_element (min_depth: int) (min_const: int) (max_const: int): arithmetic_element =
+  let allowed = [AAdd; AMul] in
   (* Only allow constants if the minimum depth has been reached *)
-  let allowed = if min_depth = 0 then 0::allowed else allowed in
+  let allowed = if min_depth = 0 then AInt::allowed else allowed in
   (* Disallow division if 0 is the only valid constant *)
-  let allowed = if min_const != 0 || max_const != 1 then 4::allowed else allowed in
+  let allowed = if min_const != 0 || max_const != 1 then ADiv::allowed else allowed in
   get_rand_from_list allowed
 
 let rec next_rand' (min_depth: int) (max_depth: int) (width: int) (min_const: int) (max_const: int): expr =
@@ -136,19 +123,15 @@ let rec next_rand' (min_depth: int) (max_depth: int) (width: int) (min_const: in
   else
     (* Choose type of expression *)
     let r = choose_next_element min_depth min_const max_const in
-    if r = 0 then
-      Z (min_const + Random.int (max_const - min_const))
-    else if r = 1 then
-      Add (next_args min_depth max_depth width min_const max_const)
-    else if r = 2 then
-      Sub (next_args min_depth max_depth width min_const max_const)
-    else if r = 3 then
-      Mul (next_args min_depth max_depth width min_const max_const)
-    else
-      let min_depth' = max 0 (min_depth - 1) in
-      let e1 = next_rand' min_depth' (max_depth - 1) width min_const max_const in
-      let e2 = get_nonzero min_depth' (max_depth - 1) width min_const max_const in
-      Div (e1, e2)
+    match r with
+    | AInt -> Z (min_const + Random.int (max_const - min_const))
+    | AAdd -> Add (next_args min_depth max_depth width min_const max_const)
+    | AMul -> Mul (next_args min_depth max_depth width min_const max_const)
+    | ADiv ->
+        let min_depth' = max 0 (min_depth - 1) in
+        let e1 = next_rand' min_depth' (max_depth - 1) width min_const max_const in
+        let e2 = get_nonzero min_depth' (max_depth - 1) width min_const max_const in
+        Div (e1, e2)
 and next_args (min_depth: int) (max_depth: int) (width: int) (min_const: int) (max_const: int): expr list =
   (* Choose width (number of arguments) *)
   let w = 2 + Random.int (width - 1) in
@@ -217,8 +200,6 @@ let rec simplify (e: expr): expr =
   | Var _ -> e
   | Add (es) when List.length es >= 2 -> simplify_add es
   | Add _ -> raise (InvalidExpr "Wrong number of arguments for operation Add.")
-  | Sub (es) when List.length es >= 2 -> simplify_sub es
-  | Sub _ -> raise (InvalidExpr "Wrong number of arguments for operation Sub.")
   | Mul (es) when List.length es >= 2 -> simplify_mul es
   | Mul _ -> raise (InvalidExpr "Wrong number of arguments for operation Mul.")
   | Div (e1, e2) -> simplify_div e1 e2
@@ -239,39 +220,6 @@ and simplify_add (args: expr list): expr =
     let addends = if r = Z 0 then nr else r :: nr in
     if List.length addends = 1 then List.hd addends
     else Add (r :: nr)
-and simplify_sub (args: expr list): expr =
-  (* Add rationals and accumulate anything else *)
-  let f (r, nr) arg =
-    let arg' = simplify arg in
-    match r, arg' with
-    | Z (n), Z (m) -> (rational_of_ints (add_rational (n, 1) (m, 1)), nr)
-    | Z (n), Div (Z n1, Z d1) -> (rational_of_ints (add_rational (n, 1) (n1, d1)), nr)
-    | Div (Z n1, Z d1), Z (n) -> (rational_of_ints (add_rational (n1, d1) (n, 1)), nr)
-    | Div (Z n1, Z d1), Div (Z n2, Z d2) -> (rational_of_ints (add_rational (n1, d1) (n2, d2)), nr)
-    | _ -> (r, nr @ [arg'])
-  in
-  (* Assume the list has at least 1 element (this is checked in the main simplify function) *)
-  let first = simplify (List.hd args) in
-  (* Find the sum of all but the first term *)
-  let (r, nr) = List.fold_left f (Z 0, []) (List.tl args) in
-  (* Subtract the sum of the last terms from the first term *)
-  match first, r with
-    | Z (n), Z (m) ->
-        let r' = Z (n - m) in
-        if nr = [] then r' else Sub (r' :: nr)
-    | Z (n), Div (Z n1, Z d1) -> 
-        let r' = rational_of_ints (add_rational (n, 1) (-n1, d1)) in
-        if nr = [] then r' else Sub (r' :: nr)
-    | Div (Z n1, Z d1), Z (n) ->
-        let r' = rational_of_ints (add_rational (n1, d1) (-n, 1)) in
-        if nr = [] then r' else Sub (r' :: nr)
-    | Div (Z n1, Z d1), Div (Z n2, Z d2) ->
-        let r' = rational_of_ints (add_rational (n1, d1) (-n2, d2)) in
-        if nr = [] then r' else Sub (r' :: nr)
-    | _ ->
-        let args = if r = Z 0 then first :: nr else first :: r :: nr in
-        if List.length args = 1 then List.hd args
-        else Sub (args)
 and simplify_mul (args: expr list): expr =
   (* Multiply rationals and accumulate everything else *)
   let f (r, nr) arg =
