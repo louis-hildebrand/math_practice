@@ -371,11 +371,23 @@ let eval_int _ =
     1.0
     (eval (Z 1) [])
 
+let eval_neg_int _ =
+  assert_equal
+    ~printer: string_of_float
+    (-1.0)
+    (eval (Neg (Z 1)) [])
+
 let eval_var _ =
   assert_equal
     ~printer: string_of_float
     2.1
     (eval (Var "x") [("x", 2.1)])
+
+let eval_neg_var _ =
+  assert_equal
+    ~printer: string_of_float
+    (-2.1)
+    (eval (Neg (Var "x")) [("x", 2.1)])
 
 let eval_add_novars _ =
   assert_equal
@@ -417,7 +429,8 @@ let eval_div_vars _ =
 (* eval: exceptions ------------------------------------------------------------------------------------------------- *)
 let eval_exc_div_by_zero _ =
   assert_raises
-    (Undefined "Attempt to divide by zero in expression 1 / (1 - 1).")
+    (Undefined (sprintf "Attempt to divide by zero in expression %s."
+      (string_of_expr (Div (Z 1, Add [Z 1; Neg (Z 1)])))))
     (fun () -> eval (Div (Z 1, Add [Z 1; Neg (Z 1)])) [])
 
 let eval_exc_add_num_args _ =
@@ -625,7 +638,9 @@ let tests =
     "string_of_expr_exc_test0">:: string_of_expr_exc_test0;
     "string_of_expr_exc_test1">:: string_of_expr_exc_test1;
     "eval_int">:: eval_int;
+    "eval_neg_int">:: eval_neg_int;
     "eval_var">:: eval_var;
+    "eval_neg_var">:: eval_neg_var;
     "eval_add_novars">:: eval_add_novars;
     "eval_add_vars">:: eval_add_vars;
     "eval_mul_novars">:: eval_mul_novars;
