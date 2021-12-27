@@ -259,7 +259,7 @@ let string_of_expr_mul0 _ =
 let string_of_expr_mul1 _ =
   assert_equal
     ~printer: (fun x -> x)
-    "-1 * 2 * 3"
+    "(-1) * 2 * 3"
     (string_of_expr (Mul [Z (-1); Z 2; Z 3]))
 
 let string_of_expr_mul_neg0 _ =
@@ -289,7 +289,7 @@ let string_of_expr_div0 _ =
 let string_of_expr_div1 _ =
   assert_equal
     ~printer: (fun x -> x)
-    "-2 / 1"
+    "(-2) / 1"
     (string_of_expr (Div (Z (-2), Z 1)))
 
 let string_of_expr_div_neg0 _ =
@@ -318,6 +318,13 @@ let string_of_expr_order_add_add _ =
     "1 + x + y + 4"
     (string_of_expr (Add [Add [Z 1; Var "x"]; Add [Var "y"; Z 4]]))
 
+(* Add / Sub *)
+let string_of_expr_order_add_sub _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "1 + 2 - 3 - 1 - (2 + 3)"
+    (string_of_expr (Add [Add [Add [Z 1; Z 2]; Neg (Z 3)]; Add [Z (-1); Neg (Add [Z 2; Z 3])]]))
+
 (* Add / Mul *)
 let string_of_expr_order_add_mul _ =
   assert_equal
@@ -332,6 +339,13 @@ let string_of_expr_order_add_div _ =
     "1 / 2 + (1 + 2) / (3 + 4)"
     (string_of_expr (Add [Div (Z 1, Z 2); Div (Add [Z 1; Z 2], Add [Z 3; Z 4])]))
 
+(* Mul / Sub *)
+let string_of_expr_order_mul_sub _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "-(1 * 2) - (1 - 2) * (-3 + 4)"
+    (string_of_expr (Add [Neg (Mul [Z 1; Z 2]); Neg (Mul [Add [Z 1; Z (-2)]; Add [Z (-3); Z 4]])]))
+
 (* Mul / Mul *)
 let string_of_expr_order_mul_mul _ =
   assert_equal
@@ -345,6 +359,13 @@ let string_of_expr_order_mul_div _ =
     ~printer: (fun x -> x)
     "1 / 2 * 1 * 2 / (3 * 4)"
     (string_of_expr (Mul [Div (Z 1, Z 2); Div (Mul [Z 1; Z 2], Mul [Z 3; Z 4])]))
+
+(* Div / Sub *)
+let string_of_expr_order_div_sub _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "-(1 / 2) - (1 - 2) / (-3 + 4)"
+    (string_of_expr (Add [Neg (Div (Z 1, Z 2)); Div (Add [Z 1; Z (-2)], Add [Z (-3); Z 4])]))
 
 (* Div / Div *)
 let string_of_expr_order_div_div _ =
@@ -642,10 +663,13 @@ let tests =
     "string_of_expr_div_neg1">:: string_of_expr_div_neg1;
     "string_of_expr_neg_div">:: string_of_expr_neg_div;
     "string_of_expr_order_add_add">:: string_of_expr_order_add_add;
+    "string_of_expr_order_add_sub">:: string_of_expr_order_add_sub;
     "string_of_expr_order_add_mul">:: string_of_expr_order_add_mul;
     "string_of_expr_order_add_div">:: string_of_expr_order_add_div;
+    "string_of_expr_order_mul_sub">:: string_of_expr_order_mul_sub;
     "string_of_expr_order_mul_mul">:: string_of_expr_order_mul_mul;
     "string_of_expr_order_mul_div">:: string_of_expr_order_mul_div;
+    "string_of_expr_order_div_sub">:: string_of_expr_order_div_sub;
     "string_of_expr_order_div_div">:: string_of_expr_order_div_div;
     "string_of_expr_exc_test0">:: string_of_expr_exc_test0;
     "string_of_expr_exc_test1">:: string_of_expr_exc_test1;
