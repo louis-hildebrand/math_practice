@@ -129,6 +129,7 @@ let rec eval (e: expr) (vals: (string * float) list): float =
       | [v] -> v
       | v1::v2::_ -> raise (MultipleDefinitions
           (sprintf "Multiple definitions provided for variable '%s' (e.g. %g, %g)." name v1 v2)))
+  | Neg e -> -.(eval e vals)
   | Add (es) when List.length es >= 2 -> List.fold_left (fun acc e -> acc +. eval e vals) 0.0 es
   | Add _ -> raise (InvalidExpr "Wrong number of arguments for operation Add.")
   | Mul (es) when List.length es >= 2 -> List.fold_left (fun acc e -> acc *. eval e vals) 1.0 es
