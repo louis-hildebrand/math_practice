@@ -35,6 +35,23 @@ let get_rand_from_list (options: 'a list): 'a =
   let i = Random.int (List.length options) in
   List.nth options i
 
+(* TODO: Add 'distribute' flag to allow for distributing negative sign to arguments in Neg (Add es) *)
+let rec flatten (e: expr): expr =
+  match e with
+  | Z _
+  | Var _ -> e
+  | Neg e' -> Neg (flatten e')
+  | Add es ->
+      let collect_args e =
+        let e' = flatten e in
+        match e' with
+        | Add es -> es
+        | _ -> [e']
+      in
+      Add (List.fold_right (fun e acc -> (collect_args e) @ acc) es [])
+  | Mul es -> Mul (List.map flatten es)
+  | Div (e1, e2) -> Div (flatten e1, flatten e2)
+
 (* Public functions --------------------------------------------------------- *)
 let init: unit -> unit =
   Random.self_init
@@ -46,16 +63,32 @@ let string_of_expr (e: expr): string =
   let rec string_of_expr' (ctxt: expr_context option) (e: expr): string =
     match e with
     | Z (n) ->
-        if n < 0 && ctxt != None then "(" ^ (string_of_int n) ^ ")"
-        else string_of_int n
-    | Var (name) -> name
+        if n < 0 && (ctxt != None && ctxt != Some (OAdd, 0)) then
+          "(" ^ (string_of_int n) ^ ")"
+        else
+          string_of_int n
+    | Var (name) ->
+        name
+    | Neg (Z n) ->
+        if n < 0 then "-(" ^ (string_of_int n) ^ ")"
+        else string_of_expr' ctxt (Z (-n))
+    | Neg e ->
+        "-" ^ (string_of_expr' (Some (ONeg, 0)) e)
     | Add (e1::es) when List.length es >= 1 ->
+        let append (i, acc) e =
+          let acc' = match e with
+            | Z n when n < 0 -> acc ^ " - " ^ (string_of_int (-n))
+            | Neg e' -> acc ^ " - " ^ (string_of_expr' (Some (OAdd, i)) e')
+            | _ -> acc ^ " + " ^ (string_of_expr' (Some (OAdd, i)) e)
+          in
+          (i + 1, acc')
+        in
         let init = string_of_expr' (Some (OAdd, 0)) e1 in
-        let append = fun (i, acc) e -> (i + 1, acc ^ " + " ^ (string_of_expr' (Some (OAdd, i)) e)) in
         let (_, final) = List.fold_left append (1, init) es in
         (match ctxt with
-        | None
-        | Some (OAdd, _) -> final
+        | None -> final
+        | Some (OAdd, _) (* Since the expression tree is flattened ahead of time, this must be a subtraction *)
+        | Some (ONeg, _)
         | Some (OMul, _)
         | Some (ODiv, _) -> "(" ^ final ^ ")")
     | Add _ ->
@@ -69,6 +102,7 @@ let string_of_expr (e: expr): string =
         | Some (OAdd, _)
         | Some (OMul, _)
         | Some (ODiv, 0) -> final
+        | Some (ONeg, _)
         | Some (ODiv, _) -> "(" ^ final ^ ")")
     | Mul _ ->
         raise (InvalidExpr "Wrong number of arguments for operation Mul.")
@@ -79,9 +113,11 @@ let string_of_expr (e: expr): string =
         | Some (OAdd, _)
         | Some (OMul, _)
         | Some (ODiv, 0) -> final
+        | Some (ONeg, _)
         | Some (ODiv, _) -> "(" ^ final ^ ")")
   in
-  string_of_expr' None e
+  let e' = flatten e in
+  string_of_expr' None e'
 
 let rec eval (e: expr) (vals: (string * float) list): float =
   match e with
