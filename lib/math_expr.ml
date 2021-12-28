@@ -35,6 +35,15 @@ let get_rand_from_list (options: 'a list): 'a =
   let i = Random.int (List.length options) in
   List.nth options i
 
+let rec negate (e: expr): expr =
+  match e with
+  | Z n -> Z (-n)
+  | Var x -> Neg (Var x)
+  | Neg e' -> e'
+  | Add es -> Add (List.map negate es)
+  | Mul es -> Mul ((negate (List.hd es)) :: (List.tl es))
+  | Div (e1, e2) -> Div (negate e1, e2)
+
 (* TODO: Add 'distribute' flag to allow for distributing negative sign to arguments in Neg (Add es) *)
 let rec flatten (e: expr): expr =
   match e with
@@ -235,6 +244,7 @@ let rec simplify (e: expr): expr =
   match e with
   | Z _
   | Var _ -> e
+  | Neg e -> negate (simplify e)
   | Add (es) when List.length es >= 2 -> simplify_add es
   | Add _ -> raise (InvalidExpr "Wrong number of arguments for operation Add.")
   | Mul (es) when List.length es >= 2 -> simplify_mul es
