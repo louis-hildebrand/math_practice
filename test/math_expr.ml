@@ -529,6 +529,13 @@ let simplify_add4 _ =
     (Var "x")
     (simplify (Add [Z 1; Var "x"; Z (-1)]))
 
+(* TODO: Combine x + x into 2 * x by factoring out the x's and simplifying 1 + 1 to 2 *)
+let simplify_add5 _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Add [Var "x"; Var "x"])
+    (simplify (Add [Var "x"; Var "x"]))
+
 let simplify_mul0 _ =
   assert_equal
     ~printer: string_of_expr
@@ -697,6 +704,7 @@ let tests =
     "simplify_add2">:: simplify_add2;
     "simplify_add3">:: simplify_add3;
     "simplify_add4">:: simplify_add4;
+    "simplify_add5">:: simplify_add5;
     "simplify_mul0">:: simplify_mul0;
     "simplify_mul1">:: simplify_mul1;
     "simplify_mul2">:: simplify_mul2;

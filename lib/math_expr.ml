@@ -266,7 +266,7 @@ and simplify_add (args: expr list): expr =
   else
     let addends = if r = Z 0 then nr else r :: nr in
     if List.length addends = 1 then List.hd addends
-    else Add (r :: nr)
+    else Add addends
 and simplify_mul (args: expr list): expr =
   (* Multiply rationals and accumulate everything else *)
   let f (r, nr) arg =
