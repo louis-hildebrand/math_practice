@@ -253,14 +253,14 @@ let string_of_expr_neg_add _ =
 let string_of_expr_mul0 _ =
   assert_equal
     ~printer: (fun x -> x)
-    "1 * 2 * (-3)"
-    (string_of_expr (Mul [Z 1; Z 2; Z (-3)]))
+    "(-x) * 2 * (-3)"
+    (string_of_expr (Mul [Neg (Var "x"); Z 2; Z (-3)]))
 
 let string_of_expr_mul1 _ =
   assert_equal
     ~printer: (fun x -> x)
-    "(-1) * 2 * 3"
-    (string_of_expr (Mul [Z (-1); Z 2; Z 3]))
+    "(-1) * (-x) * 3"
+    (string_of_expr (Mul [Z (-1); Neg (Var "x"); Z 3]))
 
 let string_of_expr_mul_neg0 _ =
   assert_equal
@@ -291,6 +291,18 @@ let string_of_expr_div1 _ =
     ~printer: (fun x -> x)
     "(-2) / 1"
     (string_of_expr (Div (Z (-2), Z 1)))
+
+let string_of_expr_div2 _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "(-x) / 2"
+    (string_of_expr (Div (Neg (Var "x"), Z 2)))
+
+let string_of_expr_div3 _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "2 / (-x)"
+    (string_of_expr (Div (Z 2, Neg (Var "x"))))
 
 let string_of_expr_div_neg0 _ =
   assert_equal
@@ -475,6 +487,12 @@ let eval_exc_unknown_var1 _ =
     (fun () -> eval (Add [Var "x"; Z 1; Var "y"]) [("x", 1.0); ("y", 2.123); ("y", 2.123)])
 
 (* simplify: values ------------------------------------------------------------------------------------------------- *)
+let simplify_neg_neg _ =
+  assert_equal
+    ~printer: string_of_expr
+    (Var "x")
+    (simplify (Neg (Neg (Var "x"))))
+
 let simplify_int _ =
   assert_equal
     ~printer: string_of_expr
@@ -529,12 +547,11 @@ let simplify_add4 _ =
     (Var "x")
     (simplify (Add [Z 1; Var "x"; Z (-1)]))
 
-(* TODO: Combine x + x into 2 * x by factoring out the x's and simplifying 1 + 1 to 2 *)
 let simplify_add5 _ =
   assert_equal
     ~printer: string_of_expr
-    (Add [Var "x"; Var "x"])
-    (simplify (Add [Var "x"; Var "x"]))
+    (Add [Var "x"; Mul [Neg (Var "y"); Var "y"]])
+    (simplify (Neg (Add [Neg (Var "x"); Mul [Var "y"; Var "y"]])))
 
 let simplify_mul0 _ =
   assert_equal
@@ -620,15 +637,25 @@ let simplify_exc_div_by_zero1 _ =
     (Undefined (sprintf "Attempt to divide by zero in expression %s." (string_of_expr (Div (Var "x", Z 0)))))
     (fun () -> simplify (Div (Z 1, Div (Var "x", Z 0))))
 
-let simplify_exc_add_num_args _ =
+let simplify_exc_add_num_args0 _ =
   assert_raises
     (InvalidExpr "Wrong number of arguments for operation Add.")
     (fun () -> simplify (Add [Z 1]))
 
-let simplify_exc_mul_num_args _ =
+let simplify_exc_add_num_args1 _ =
+  assert_raises
+    (InvalidExpr "Wrong number of arguments for operation Add.")
+    (fun () -> simplify (Neg (Add [Z 1])))
+
+let simplify_exc_mul_num_args0 _ =
   assert_raises
     (InvalidExpr "Wrong number of arguments for operation Mul.")
     (fun () -> simplify (Mul [Z 1]))
+
+let simplify_exc_mul_num_args1 _ =
+  assert_raises
+    (InvalidExpr "Wrong number of arguments for operation Mul.")
+    (fun () -> simplify (Neg (Mul [Z 1])))
 
 (* List and run tests ----------------------------------------------------------------------------------------------- *)
 let tests =
@@ -666,6 +693,8 @@ let tests =
     "string_of_expr_neg_mul">:: string_of_expr_neg_mul;
     "string_of_expr_div0">:: string_of_expr_div0;
     "string_of_expr_div1">:: string_of_expr_div1;
+    "string_of_expr_div2">:: string_of_expr_div2;
+    "string_of_expr_div3">:: string_of_expr_div3;
     "string_of_expr_div_neg0">:: string_of_expr_div_neg0;
     "string_of_expr_div_neg1">:: string_of_expr_div_neg1;
     "string_of_expr_neg_div">:: string_of_expr_neg_div;
@@ -695,6 +724,7 @@ let tests =
     "eval_exc_mul_num_args">:: eval_exc_mul_num_args;
     "eval_exc_unknown_var0">:: eval_exc_unknown_var0;
     "eval_exc_unknown_var1">:: eval_exc_unknown_var1;
+    "simplify_neg_neg">:: simplify_neg_neg;
     "simplify_int">:: simplify_int;
     "simplify_neg_int">:: simplify_neg_int;
     "simplify_var">:: simplify_var;
@@ -719,8 +749,10 @@ let tests =
     "simplify_div4">:: simplify_div4;
     "simplify_exc_div_by_zero0">:: simplify_exc_div_by_zero0;
     "simplify_exc_div_by_zero1">:: simplify_exc_div_by_zero1;
-    "simplify_exc_add_num_args">:: simplify_exc_add_num_args;
-    "simplify_exc_mul_num_args">:: simplify_exc_mul_num_args;
+    "simplify_exc_add_num_args0">:: simplify_exc_add_num_args0;
+    "simplify_exc_add_num_args1">:: simplify_exc_add_num_args1;
+    "simplify_exc_mul_num_args0">:: simplify_exc_mul_num_args0;
+    "simplify_exc_mul_num_args1">:: simplify_exc_mul_num_args1;
   ]
 
 let () =

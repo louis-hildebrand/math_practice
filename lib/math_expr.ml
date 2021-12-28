@@ -41,6 +41,7 @@ let rec negate (e: expr): expr =
   | Var x -> Neg (Var x)
   | Neg e' -> e'
   | Add es -> Add (List.map negate es)
+  (* Assume there is at least 1 argument *)
   | Mul es -> Mul ((negate (List.hd es)) :: (List.tl es))
   | Div (e1, e2) -> Div (negate e1, e2)
 
@@ -82,7 +83,14 @@ let string_of_expr (e: expr): string =
         if n < 0 then "-(" ^ (string_of_int n) ^ ")"
         else string_of_expr' ctxt (Z (-n))
     | Neg e ->
-        "-" ^ (string_of_expr' (Some (ONeg, 0)) e)
+        let final = "-" ^ (string_of_expr' (Some (ONeg, 0)) e) in
+        (match ctxt with
+        | None
+        | Some (OAdd, 0) -> final
+        | Some (ONeg, _)
+        | Some (OAdd, _)
+        | Some (OMul, _)
+        | Some (ODiv, _) -> "(" ^ final ^ ")")
     | Add (e1::es) when List.length es >= 1 ->
         let append (i, acc) e =
           let acc' = match e with
