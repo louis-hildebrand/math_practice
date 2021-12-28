@@ -365,7 +365,7 @@ let string_of_expr_order_div_sub _ =
   assert_equal
     ~printer: (fun x -> x)
     "-(1 / 2) - (1 - 2) / (-3 + 4)"
-    (string_of_expr (Add [Neg (Div (Z 1, Z 2)); Div (Add [Z 1; Z (-2)], Add [Z (-3); Z 4])]))
+    (string_of_expr (Add [Neg (Div (Z 1, Z 2)); Neg (Div (Add [Z 1; Z (-2)], Add [Z (-3); Z 4]))]))
 
 (* Div / Div *)
 let string_of_expr_order_div_div _ =
