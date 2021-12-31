@@ -2,8 +2,8 @@
 type expr =
   | Z of int           (** Integer *)
   | Var of string      (** Named variable *)
+  | Neg of expr        (** -e1 *)
   | Add of expr list   (** e1 + e2 + e3 + ... *)
-  | Sub of expr list   (** e1 - e2 - e3 - ... *)
   | Mul of expr list   (** e1 * e2 * e3 * ... *)
   | Div of expr * expr (** e1 / e2 *)
 
