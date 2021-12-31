@@ -35,7 +35,7 @@ let repeat (x: 'a) (n: int): 'a list =
   in
   repeat' n []
 
-(* next_rand: values ------------------------------------------------------------------------------------------------ *)
+(* next_fractional: values ------------------------------------------------------------------------------------------ *)
 let min_depth = 1
 let max_depth = 3
 let width = 3
@@ -44,7 +44,7 @@ let max_const = 3
 let (random_exprs: (int * expr) list) =
   let generate_rand_expr s =
     seed s;
-    (s, next_rand min_depth max_depth width min_const max_const)
+    (s, next_fractional min_depth max_depth width min_const max_const)
   in
   List.map generate_rand_expr (tabulate 0 100)
 let (random_consts: int list) =
@@ -143,7 +143,7 @@ let next_rand_no_div_by_zero1 _ =
   List.iter f random_exprs
 
 let next_rand_no_div_by_zero2 _ =
-  let random_exprs = List.map (fun () -> next_rand 2 2 2 0 1) (repeat () 100) in
+  let random_exprs = List.map (fun () -> next_fractional 2 2 2 0 1) (repeat () 100) in
   let f e =
     if has_div_by_zero e then assert_failure (sprintf "Found expression with division by zero: %s." (string_of_expr e))
     else ()
@@ -151,38 +151,38 @@ let next_rand_no_div_by_zero2 _ =
   List.iter f random_exprs
 
 let next_rand_no_div_by_zero3 _ =
-  let random_exprs = List.map (fun () -> next_rand 2 2 2 0 2) (repeat () 100) in
+  let random_exprs = List.map (fun () -> next_fractional 2 2 2 0 2) (repeat () 100) in
   let f e =
     if has_div_by_zero e then assert_failure (sprintf "Found expression with division by zero: %s." (string_of_expr e))
     else ()
   in
   List.iter f random_exprs
 
-(* next_rand: exceptions -------------------------------------------------------------------------------------------- *)
+(* next_fractional: exceptions -------------------------------------------------------------------------------------- *)
 let next_rand_exc_min_depth_invalid _ =
   assert_raises
     (Invalid_argument "Minimum depth of expression cannot be negative.")
-    (fun () -> next_rand (-1) 3 2 0 1)
+    (fun () -> next_fractional (-1) 3 2 0 1)
 
 let next_rand_exc_max_depth_invalid _ =
   assert_raises
     (Invalid_argument "Maximum depth of expression cannot be negative.")
-    (fun () -> next_rand 0 (-1) 2 0 1)
+    (fun () -> next_fractional 0 (-1) 2 0 1)
 
 let next_rand_exc_min_depth_greater_than_max_depth _ =
   assert_raises
     (Invalid_argument "Minimum depth of expression must be less than or equal to maximum depth.")
-    (fun () -> next_rand 1 0 2 0 1)
+    (fun () -> next_fractional 1 0 2 0 1)
 
 let next_rand_exc_width_invalid _ =
   assert_raises
     (Invalid_argument "Width of expression must be at least 2.")
-    (fun () -> next_rand 0 0 1 0 1)
+    (fun () -> next_fractional 0 0 1 0 1)
 
 let next_rand_exc_min_const_equal_max_const _ =
   assert_raises
     (Invalid_argument "Minimum constant must be less than maximum constant.")
-    (fun () -> next_rand 0 0 2 0 0)
+    (fun () -> next_fractional 0 0 2 0 0)
 
 (* List and run tests ----------------------------------------------------------------------------------------------- *)
 let tests =
