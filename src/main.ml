@@ -1,5 +1,6 @@
 open Printf
-open Math_expr
+open Dobson.Math_expr
+open Dobson.Rand_expr
 
 (* tabulate origin dest returns the list [origin; origin + 1; ...; dest - 1; dest] *)
 let rec tabulate (origin: int) (dest: int): int list =
