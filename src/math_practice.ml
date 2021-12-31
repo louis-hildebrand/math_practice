@@ -1,5 +1,6 @@
 open Printf
-open Math_expr
+open Dobson.Base
+open Dobson.Rand
 
 (* tabulate origin dest returns the list [origin; origin + 1; ...; dest - 1; dest] *)
 let rec tabulate (origin: int) (dest: int): int list =
@@ -58,7 +59,7 @@ let anon_fun (arg: string): unit =
 (* Subcommands ------------------------------------------------------------------------------------------------------ *)
 let generate_arithmetic_questions (num_questions: int) (sd: int): expr list =
   seed sd;
-  List.map (fun () -> next_rand 1 1 2 (-99) 100) (repeat () num_questions)
+  List.map (fun () -> next_fractional 1 1 2 (-99) 100) (repeat () num_questions)
 
 let ask_arithmetic (quiet: bool) (num_questions: int) (sd: int): unit =
   let print_question n e =
