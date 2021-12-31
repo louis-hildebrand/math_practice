@@ -244,6 +244,12 @@ let string_of_expr_add_neg1 _ =
     (string_of_expr (Add [Z (-1); Z 2; Z 3]))
     (string_of_expr (Add [Neg (Z 1); Z 2; Z 3]))
 
+let string_of_expr_add_neg2 _ =
+  assert_equal
+    ~printer: (fun x -> x)
+    "1 - (-(-x))"
+    (string_of_expr (Add [Z 1; Neg (Neg (Neg (Var "x")))]))
+
 let string_of_expr_neg_add _ =
   assert_equal
     ~printer: (fun x -> x)
@@ -685,6 +691,7 @@ let tests =
     "string_of_expr_add1">:: string_of_expr_add1;
     "string_of_expr_add_neg0">:: string_of_expr_add_neg0;
     "string_of_expr_add_neg1">:: string_of_expr_add_neg1;
+    "string_of_expr_add_neg2">:: string_of_expr_add_neg2;
     "string_of_expr_neg_add">:: string_of_expr_neg_add;
     "string_of_expr_mul0">:: string_of_expr_mul0;
     "string_of_expr_mul1">:: string_of_expr_mul1;
