@@ -13,4 +13,4 @@ val seed: int -> unit
  * min_const: Minimum value for constants (inclusive)
  * max_const: Maximum value for constants (exclusive)
  *)
-val next_fractional: int -> int -> int -> int -> int -> Math_expr.expr
+val next_fractional: int -> int -> int -> int -> int -> Base.expr

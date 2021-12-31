@@ -1,5 +1,5 @@
-open Dobson.Math_expr
-open Dobson.Rand_expr
+open Dobson.Base
+open Dobson.Rand
 open OUnit2
 open Printf
 
