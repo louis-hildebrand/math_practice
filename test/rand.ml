@@ -155,7 +155,7 @@ let next_rand_exc_min_const_equal_max_const _ =
 
 (* List and run tests ----------------------------------------------------------------------------------------------- *)
 let tests =
-  "rand_expr_tests">::: [
+  "rand_tests">::: [
     "next_rand_min_depth">:: next_rand_min_depth;
     "next_rand_max_depth">:: next_rand_max_depth;
     "next_rand_all_depths">:: next_rand_all_depths;

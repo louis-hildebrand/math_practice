@@ -418,7 +418,7 @@ let simplify_exc_mul_num_args1 _ =
 
 (* List and run tests ----------------------------------------------------------------------------------------------- *)
 let tests =
-  "math_expr_tests">::: [
+  "base_tests">::: [
     "string_of_expr_int_positive">:: string_of_expr_int_positive;
     "string_of_expr_int_negative">:: string_of_expr_int_negative;
     "string_of_expr_neg_int_positive">:: string_of_expr_neg_int_positive;
