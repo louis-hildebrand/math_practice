@@ -164,8 +164,9 @@ let string_of_expr (e: expr): string =
   let e' = flatten e in
   string_of_expr' None e'
 
-let string_of_rational (x: rational): string =
-  raise NotImplemented
+let string_of_rational ((n, d): rational): string =
+  if d = 1 then string_of_int n
+  else sprintf "%d/%d" n d
 
 let rec eval (e: expr) (vals: (string * float) list): float =
   match e with
