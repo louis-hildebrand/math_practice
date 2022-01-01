@@ -61,7 +61,7 @@ let gcd (n: int) (m: int): int =
   let (n', m') = (abs n, abs m) in
   gcd' (max n' m') (min n' m')
 
-(* Does NOT check for division by zero *)
+(* Does NOT check for division by zero. It is NOT safe to call reduce_fraction 0 0. *)
 let reduce_fraction ((numer: int), (denom: int)): (int * int) =
   let g =
     if denom > 0 then gcd numer denom 
@@ -95,7 +95,7 @@ let new_rational (numerator: int) (denominator: int): rational =
     (n', d')
 
 let equal_rational (x: rational) (y: rational): bool =
-  raise NotImplemented
+  reduce_fraction x = reduce_fraction y
 
 let string_of_expr (e: expr): string =
   let rec string_of_expr' (ctxt: expr_context option) (e: expr): string =
