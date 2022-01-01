@@ -7,6 +7,8 @@ let assert_equal_float = assert_equal ~printer: string_of_float ~cmp: (cmp_float
 
 let assert_equal_expr = assert_equal ~printer: string_of_expr
 
+let assert_equal_rational = assert_equal ~printer: string_of_rational ~cmp: equal_rational
+
 (* Calculates the depth of an expression tree. *)
 let rec depth (e: expr): int =
   match e with
