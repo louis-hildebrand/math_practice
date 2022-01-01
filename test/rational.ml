@@ -161,8 +161,8 @@ let tests =
     "eval_rational_div_vars">:: eval_rational_div_vars;
     "eval_rational_add_novars">:: eval_rational_add_novars;
     "eval_rational_add_vars">:: eval_rational_add_vars;
-    "eval_rational_add_novars">:: eval_rational_add_novars;
-    "eval_rational_add_vars">:: eval_rational_add_vars;
+    "eval_rational_mul_novars">:: eval_rational_mul_novars;
+    "eval_rational_mul_vars">:: eval_rational_mul_vars;
     "eval_rational_exc_div_by_zero">:: eval_rational_exc_div_by_zero;
     "eval_rational_exc_add_num_args">:: eval_rational_exc_add_num_args;
     "eval_rational_exc_mul_num_args">:: eval_rational_exc_mul_num_args;
