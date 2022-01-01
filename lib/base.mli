@@ -26,6 +26,9 @@ exception MultipleDefinitions of string
 (** Instantiates a rational number. *)
 val new_rational: int -> int -> rational
 
+(** Checks whether two rational numbers are equal in value. *)
+val equal_rational: rational -> rational -> bool
+
 (** Converts the given expression to a string. *)
 val string_of_expr: expr -> string
 

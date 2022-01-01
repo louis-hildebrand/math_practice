@@ -59,6 +59,9 @@ exception NotImplemented
 let new_rational (numerator: int) (denominator: int): rational =
   raise NotImplemented
 
+let equal_rational (x: rational) (y: rational): bool =
+  raise NotImplemented
+
 let string_of_expr (e: expr): string =
   let rec string_of_expr' (ctxt: expr_context option) (e: expr): string =
     match e with
