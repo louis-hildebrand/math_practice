@@ -1,6 +1,7 @@
 open Printf
 open Dobson.Base
 open Dobson.Rand
+open Dobson.Rational
 
 (* tabulate origin dest returns the list [origin; origin + 1; ...; dest - 1; dest] *)
 let rec tabulate (origin: int) (dest: int): int list =
@@ -74,7 +75,7 @@ let ask_arithmetic (quiet: bool) (num_questions: int) (sd: int): unit =
 let answer_arithmetic (quiet: bool) (num_questions: int) (sd: int): unit =
   let print_answer n e =
     if not quiet then (printf "%d. %s = " n (string_of_expr e)) else ();
-    printf "%s\n" (string_of_expr (simplify e))
+    printf "%s\n" (string_of_rational (eval_rational e []))
   in
   let questions = generate_arithmetic_questions num_questions sd in
   let n = ref 1 in

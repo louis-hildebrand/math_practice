@@ -9,8 +9,6 @@ type expr =
   | Mul of expr list   (* e1 * e2 * e3 * ... *)
   | Div of expr * expr (* e1 / e2 *)
 
-type rational = int * int
-
 type operation =
   | ONeg
   | OAdd
@@ -26,16 +24,6 @@ exception UndefinedVariable of string
 exception MultipleDefinitions of string
 
 (* Helper functions --------------------------------------------------------- *)
-let rec negate (e: expr): expr =
-  match e with
-  | Z n -> Z (-n)
-  | Var x -> Neg (Var x)
-  | Neg e' -> e'
-  | Add es -> Add (List.map negate es)
-  (* Assume there is at least 1 argument *)
-  | Mul es -> Mul ((negate (List.hd es)) :: (List.tl es))
-  | Div (e1, e2) -> Div (negate e1, e2)
-
 (* TODO: Add 'distribute' flag to allow for distributing negative sign to arguments in Neg (Add es) *)
 let rec flatten (e: expr): expr =
   match e with
@@ -53,50 +41,7 @@ let rec flatten (e: expr): expr =
   | Mul es -> Mul (List.map flatten es)
   | Div (e1, e2) -> Div (flatten e1, flatten e2)
 
-let gcd (n: int) (m: int): int =
-  let rec gcd' big small =
-    if small = 0 then big
-    else gcd' small (big mod small)
-  in
-  let (n', m') = (abs n, abs m) in
-  gcd' (max n' m') (min n' m')
-
-(* Does NOT check for division by zero. It is NOT safe to call reduce_fraction 0 0. *)
-let reduce_fraction ((numer: int), (denom: int)): (int * int) =
-  let g =
-    if denom > 0 then gcd numer denom 
-    else ~- (gcd numer denom)
-  in
-  (numer / g, denom / g)
-
-let add_rational ((n1: int), (d1: int)) ((n2: int), (d2: int)): (int * int) =
-  (* n1/d1 + n2/d2 = (n1*d2 + n2*d1)/(d1*d2) *)
-  (* If overflow ever becomes a problem, try finding the LCM of the denominators instead *)
-  (n1*d2 + n2*d1, d1*d2)
-
-let multiply_rational ((n1: int), (d1: int)) ((n2: int), (d2: int)): (int * int) =
-  (* n1/d1 * n2/d2 = (n1*n2)/(d1*d2) *)
-  (n1 * n2, d1 * d2)
-
-let rational_expr_of_ints ((n: int), (d: int)): expr =
-  let (n', d') = reduce_fraction (n, d) in
-  if d' = 1 then Z (n')
-  else Div (Z n', Z d')
-
 (* Public functions --------------------------------------------------------- *)
-(* TODO: Remove *)
-exception NotImplemented
-let new_rational (numerator: int) (denominator: int): rational =
-  if denominator = 0 then
-    raise (Undefined 
-      (sprintf "Attempt to initialize rational number with denominator of zero (%d/%d)." numerator denominator))
-  else
-    let (n', d') = reduce_fraction (numerator, denominator) in
-    (n', d')
-
-let equal_rational (x: rational) (y: rational): bool =
-  reduce_fraction x = reduce_fraction y
-
 let string_of_expr (e: expr): string =
   let rec string_of_expr' (ctxt: expr_context option) (e: expr): string =
     match e with
@@ -164,10 +109,6 @@ let string_of_expr (e: expr): string =
   let e' = flatten e in
   string_of_expr' None e'
 
-let string_of_rational ((n, d): rational): string =
-  if d = 1 then string_of_int n
-  else sprintf "%d/%d" n d
-
 let rec eval (e: expr) (vals: (string * float) list): float =
   match e with
   | Z (n) -> float_of_int n
@@ -188,73 +129,3 @@ let rec eval (e: expr) (vals: (string * float) list): float =
       if denom = 0.0 then raise (Undefined (sprintf "Attempt to divide by zero in expression %s." (string_of_expr e)))
       else let numer = eval e1 vals in
       numer /. denom
-
-let eval_rational (e: expr) (vals: (string * rational) list): rational =
-  raise NotImplemented
-
-let equals (e1: expr) (e2: expr): bool =
-  try
-    eval e1 [] = eval e2 []
-  (* TODO: Implement this properly *)
-  with UndefinedVariable _ ->
-    false
-
-let rec simplify (e: expr): expr =
-  match e with
-  | Z _
-  | Var _ -> e
-  | Neg e -> negate (simplify e)
-  | Add (es) when List.length es >= 2 -> simplify_add es
-  | Add _ -> raise (InvalidExpr "Wrong number of arguments for operation Add.")
-  | Mul (es) when List.length es >= 2 -> simplify_mul es
-  | Mul _ -> raise (InvalidExpr "Wrong number of arguments for operation Mul.")
-  | Div (e1, e2) -> simplify_div e1 e2
-and simplify_add (args: expr list): expr =
-  (* Add rationals and accumulate anything else *)
-  let f (r, nr) arg =
-    let arg' = simplify arg in
-    match r, arg' with
-    | Z (n), Z (m) -> (rational_expr_of_ints (add_rational (n, 1) (m, 1)), nr)
-    | Z (n), Div (Z n1, Z d1) -> (rational_expr_of_ints (add_rational (n, 1) (n1, d1)), nr)
-    | Div (Z n1, Z d1), Z (n) -> (rational_expr_of_ints (add_rational (n1, d1) (n, 1)), nr)
-    | Div (Z n1, Z d1), Div (Z n2, Z d2) -> (rational_expr_of_ints (add_rational (n1, d1) (n2, d2)), nr)
-    | _ -> (r, nr @ [arg'])
-  in
-  let (r, nr) = List.fold_left f (Z 0, []) args in
-  if nr = [] then r
-  else
-    let addends = if r = Z 0 then nr else r :: nr in
-    if List.length addends = 1 then List.hd addends
-    else Add addends
-and simplify_mul (args: expr list): expr =
-  (* Multiply rationals and accumulate everything else *)
-  let f (r, nr) arg =
-    let arg' = simplify arg in
-    match r, arg' with
-    | Z (n), Z (m) -> (rational_expr_of_ints (multiply_rational (n, 1) (m, 1)), nr)
-    | Z (n), Div (Z n1, Z d1) -> (rational_expr_of_ints (multiply_rational (n, 1) (n1, d1)), nr)
-    | Div (Z n1, Z d1), Z (n) -> (rational_expr_of_ints (multiply_rational (n1, d1) (n, 1)), nr)
-    | Div (Z n1, Z d1), Div (Z n2, Z d2) -> (rational_expr_of_ints (multiply_rational (n1, d1) (n2, d2)), nr)
-    | _ -> (r, nr @ [arg'])
-  in
-  let (r, nr) = List.fold_left f (Z 1, []) args in
-  if nr = [] then r
-  else if r = Z 0 then Z 0
-  else
-    let factors = if r = Z 1 then nr else r :: nr in
-    if List.length factors = 1 then List.hd factors
-    else Mul factors
-and simplify_div (e1: expr) (e2: expr): expr =
-  let denom_identically_zero = equals e2 (Z 0) in
-  if denom_identically_zero then
-    raise (Undefined (sprintf "Attempt to divide by zero in expression %s." (string_of_expr (Div (e1, e2)))))
-  else
-    let (e1', e2') = (simplify e1, simplify e2) in
-    match e1', e2' with
-    | Z (n), Z (m) -> rational_expr_of_ints (n, m)
-    | Z (n), Div (Z n1, Z d1) -> rational_expr_of_ints (multiply_rational (n, 1) (d1, n1))
-    | Div (Z n1, Z d1), Z (n) -> rational_expr_of_ints (multiply_rational (n1, d1) (1, n))
-    | Div (Z n1, Z d1), Div (Z n2, Z d2) -> rational_expr_of_ints (multiply_rational (n1, d1) (d2, n2))
-    | Z (0), _ -> Z (0)
-    | _, Z (1) -> e1'
-    | _ -> Div (e1', e2')
