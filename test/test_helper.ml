@@ -1,4 +1,11 @@
 open Dobson.Base
+open OUnit2
+
+let assert_equal_string = assert_equal ~printer: (fun x -> x)
+
+let assert_equal_float = assert_equal ~printer: string_of_float ~cmp: (cmp_float ~epsilon: 1e-15)
+
+let assert_equal_expr = assert_equal ~printer: string_of_expr
 
 (* Calculates the depth of an expression tree. *)
 let rec depth (e: expr): int =
