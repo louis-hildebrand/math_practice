@@ -25,6 +25,3 @@ val string_of_expr: expr -> string
 
 (** Evaluates the given expression. *)
 val eval: expr -> (string * float) list -> float
-
-(** Simplifies the given expression. *)
-val simplify: expr -> expr
