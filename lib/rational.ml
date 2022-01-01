@@ -62,7 +62,7 @@ let (=:) (x: rational) (y: rational): bool =
   (* Assume the fractions are already reduced *)
   x = y
 
-let (!=:) (x: rational) (y: rational): bool =
+let (<>:) (x: rational) (y: rational): bool =
   not (x =: y)
 
 let (<:) ((n1, d1): rational) ((n2, d2): rational): bool =

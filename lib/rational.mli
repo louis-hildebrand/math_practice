@@ -28,7 +28,7 @@ val (/:): rational -> rational -> rational
 val (=:): rational -> rational -> bool
 
 (** Checks whether two rational numbers are different in value. *)
-val (!=:): rational -> rational -> bool
+val (<>:): rational -> rational -> bool
 
 (** Checks whether a rational number is strictly less than another. *)
 val (<:): rational -> rational -> bool
