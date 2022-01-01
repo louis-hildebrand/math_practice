@@ -114,7 +114,7 @@ let eval_rational_exc_unknown_var0 _ =
 
 let eval_rational_exc_unknown_var1 _ =
   assert_raises
-    (MultipleDefinitions "Multiple definitions provided for variable 'y' (e.g. 2.123, 2.123).")
+    (MultipleDefinitions "Multiple definitions provided for variable 'y' (e.g. 5/2, 5/2).")
     (fun () -> eval_rational (Add [Var "x"; Z 1; Var "y"]) 
       [("x", new_rational 1 1); ("y", new_rational 5 2); ("y", new_rational 5 2)])
 
