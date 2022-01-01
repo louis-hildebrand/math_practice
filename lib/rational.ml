@@ -34,25 +34,29 @@ let new_rational (numerator: int) (denominator: int): rational =
     let (n', d') = reduce_fraction (numerator, denominator) in
     (n', d')
 
+(* If overflow ever becomes a problem for the operators, try finding the LCM of the denominators instead. *)
+
 let (+:) ((n1, d1): rational) ((n2, d2): rational): rational =
   (* n1/d1 + n2/d2 = (n1*d2 + n2*d1)/(d1*d2) *)
-  (* If overflow ever becomes a problem, try finding the LCM of the denominators instead *)
-  (n1*d2 + n2*d1, d1*d2)
+  (* Assume both denominators are nonzero. *)
+  reduce_fraction (n1*d2 + n2*d1, d1*d2)
 
 let (-:) ((n1, d1): rational) ((n2, d2): rational): rational =
   (* n1/d1 - n2/d2 = (n1*d2 - n2*d1)/(d1*d2) *)
-  (* If overflow ever becomes a problem, try finding the LCM of the denominators instead *)
-  (n1*d2 - n2*d1, d1*d2)
+  (* Assume both denominators are nonzero. *)
+  reduce_fraction (n1*d2 - n2*d1, d1*d2)
 
 let (~-:) (x: rational): rational =
   (new_rational 0 1) -: x
 
 let ( *: ) ((n1, d1): rational) ((n2, d2): rational): rational =
   (* n1/d1 * n2/d2 = (n1*n2) / (d1*d2) *)
-  (n1 * n2, d1 * d2)
+  (* Assume both denominators are nonzero. *)
+  reduce_fraction (n1 * n2, d1 * d2)
 
 let (/:) ((n1, d1): rational) ((n2, d2): rational): rational =
   (* (n1/d1) / (n2/d2) = (n1*d2) / (d1*n2) *)
+  (* Assume both denominators are nonzero. *)
   let n' = n1 * d2 in
   let d' = d1 * n2 in
   if d' = 0 then raise Division_by_zero
