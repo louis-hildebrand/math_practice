@@ -43,7 +43,9 @@ let (+:) ((n1, d1): rational) ((n2, d2): rational): rational =
 
 (** Computes the difference of rational numbers. *)
 let (-:) ((n1, d1): rational) ((n2, d2): rational): rational =
-  raise NotImplemented
+  (* n1/d1 - n2/d2 = (n1*d2 - n2*d1)/(d1*d2) *)
+  (* If overflow ever becomes a problem, try finding the LCM of the denominators instead *)
+  (n1*d2 - n2*d1, d1*d2)
 
 (* Computes the negation of a single rational number. *)
 let (~-:) (x: rational): rational =
@@ -51,12 +53,16 @@ let (~-:) (x: rational): rational =
 
 (** Computes the product of rational numbers. *)
 let ( *: ) ((n1, d1): rational) ((n2, d2): rational): rational =
-  (* n1/d1 * n2/d2 = (n1*n2)/(d1*d2) *)
+  (* n1/d1 * n2/d2 = (n1*n2) / (d1*d2) *)
   (n1 * n2, d1 * d2)
 
 (** Computes the quotient of rational numbers. *)
 let (/:) ((n1, d1): rational) ((n2, d2): rational): rational =
-  raise NotImplemented
+  (* (n1/d1) / (n2/d2) = (n1*d2) / (d1*n2) *)
+  let n' = n1 * d2 in
+  let d' = d1 * n2 in
+  if d' = 0 then raise Division_by_zero
+  else new_rational n' d'
 
 (* Checks whether two rational numbers are equal in value. *)
 let (=:) (x: rational) (y: rational): bool =
@@ -82,5 +88,28 @@ let string_of_rational ((n, d): rational): string =
   if d = 1 then string_of_int n
   else sprintf "%d/%d" n d
 
-let eval_rational (e: expr) (vals: (string * rational) list): rational =
-  raise NotImplemented
+let rec eval_rational (e: expr) (vals: (string * rational) list): rational =
+  match e with
+  | Z n -> new_rational n 1
+  | Var name -> 
+      let vs = List.map (fun (_, v) -> v) (List.filter (fun (n, _) -> n = name) vals) in
+      (match vs with
+      | [] -> raise (UndefinedVariable (sprintf "No definition provided for variable '%s'." name))
+      | [v] -> v
+      | v1::v2::_ ->
+          raise (MultipleDefinitions (sprintf "Multiple definitions provided for variable '%s' (e.g. %s, %s)."
+            name (string_of_rational v1) (string_of_rational v2))))
+  | Neg e' -> ~-:(eval_rational e' vals)
+  | Add es when List.length es >= 2 ->
+      List.fold_left (fun acc e -> acc +: (eval_rational e vals)) (new_rational 0 1) es
+  | Add _ -> raise (InvalidExpr "Wrong number of arguments for operation Add.")
+  | Mul es when List.length es >= 2 ->
+      List.fold_left (fun acc e -> acc *: (eval_rational e vals)) (new_rational 1 1) es
+  | Mul _ -> raise (InvalidExpr "Wrong number of arguments for operation Mul.")
+  | Div (e1, e2) ->
+      let n = eval_rational e1 vals in
+      let d = eval_rational e2 vals in
+      if d =: (new_rational 0 1) then
+        raise (Undefined (sprintf "Attempt to divide by zero in expression %s." (string_of_expr e)))
+      else
+        n /: d
