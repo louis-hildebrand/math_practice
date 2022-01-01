@@ -15,6 +15,9 @@ val (+:): rational -> rational -> rational
 (** Computes the difference of rational numbers. *)
 val (-:): rational -> rational -> rational
 
+(* Computes the negation of a single rational number. *)
+val (~-:): rational -> rational
+
 (** Computes the product of rational numbers. *)
 val ( *: ): rational -> rational -> rational
 

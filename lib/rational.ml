@@ -35,28 +35,23 @@ let new_rational (numerator: int) (denominator: int): rational =
 (* TODO: Remove *)
 exception NotImplemented
 
-(** Computes the sum of rational numbers. *)
 let (+:) ((n1, d1): rational) ((n2, d2): rational): rational =
   (* n1/d1 + n2/d2 = (n1*d2 + n2*d1)/(d1*d2) *)
   (* If overflow ever becomes a problem, try finding the LCM of the denominators instead *)
   (n1*d2 + n2*d1, d1*d2)
 
-(** Computes the difference of rational numbers. *)
 let (-:) ((n1, d1): rational) ((n2, d2): rational): rational =
   (* n1/d1 - n2/d2 = (n1*d2 - n2*d1)/(d1*d2) *)
   (* If overflow ever becomes a problem, try finding the LCM of the denominators instead *)
   (n1*d2 - n2*d1, d1*d2)
 
-(* Computes the negation of a single rational number. *)
 let (~-:) (x: rational): rational =
   (new_rational 0 1) -: x
 
-(** Computes the product of rational numbers. *)
 let ( *: ) ((n1, d1): rational) ((n2, d2): rational): rational =
   (* n1/d1 * n2/d2 = (n1*n2) / (d1*d2) *)
   (n1 * n2, d1 * d2)
 
-(** Computes the quotient of rational numbers. *)
 let (/:) ((n1, d1): rational) ((n2, d2): rational): rational =
   (* (n1/d1) / (n2/d2) = (n1*d2) / (d1*n2) *)
   let n' = n1 * d2 in
@@ -64,23 +59,18 @@ let (/:) ((n1, d1): rational) ((n2, d2): rational): rational =
   if d' = 0 then raise Division_by_zero
   else new_rational n' d'
 
-(* Checks whether two rational numbers are equal in value. *)
 let (=:) (x: rational) (y: rational): bool =
   reduce_fraction x = reduce_fraction y
 
-(** Checks whether a rational number is strictly less than another. *)
 let (<:) (x: rational) (y: rational): bool =
   raise NotImplemented
 
-(** Checks whether a rational number is less than or equal to another. *)
 let (<=:) (x: rational) (y: rational): bool =
   raise NotImplemented
 
-(** Checks whether a rational number is strictly greater than another. *)
 let (>:) (x: rational) (y: rational): bool =
   raise NotImplemented
 
-(** Checks whether a rational number is greater than or equal to another. *)
 let (>=:) (x: rational) (y: rational): bool =
   raise NotImplemented
 
