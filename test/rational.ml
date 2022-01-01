@@ -82,7 +82,7 @@ let multiply_positive _ =
 
 let multiply_negative _ =
   assert_equal_rational
-    (new_rational (-2) 35)
+    (new_rational (-14) 5)
     (new_rational 12 5 *: new_rational 7 (-6))
 
 (* divide: values --------------------------------------------------------------------------------------------------- *)
@@ -93,7 +93,7 @@ let divide_positive _ =
 
 let divide_negative _ =
   assert_equal_rational
-    (new_rational (-2) 35)
+    (new_rational (-14) 5)
     (new_rational 12 5 /: new_rational 6 (-7))
 
 (* divide: exceptions ----------------------------------------------------------------------------------------------- *)
