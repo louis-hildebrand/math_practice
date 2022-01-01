@@ -24,6 +24,8 @@ let reduce_fraction ((numer: int), (denom: int)): (int * int) =
   (numer / g, denom / g)
 
 (* Public functions ------------------------------------------------------------------------------------------------- *)
+(* NOTE: Every function that returns a fraction must simplify it as much as possible. *)
+
 let new_rational (numerator: int) (denominator: int): rational =
   if denominator = 0 then
     raise (Undefined 
@@ -31,9 +33,6 @@ let new_rational (numerator: int) (denominator: int): rational =
   else
     let (n', d') = reduce_fraction (numerator, denominator) in
     (n', d')
-
-(* TODO: Remove *)
-exception NotImplemented
 
 let (+:) ((n1, d1): rational) ((n2, d2): rational): rational =
   (* n1/d1 + n2/d2 = (n1*d2 + n2*d1)/(d1*d2) *)
@@ -60,19 +59,20 @@ let (/:) ((n1, d1): rational) ((n2, d2): rational): rational =
   else new_rational n' d'
 
 let (=:) (x: rational) (y: rational): bool =
-  reduce_fraction x = reduce_fraction y
+  (* Assume the fractions are already reduced *)
+  x = y
 
-let (<:) (x: rational) (y: rational): bool =
-  raise NotImplemented
+let (<:) ((n1, d1): rational) ((n2, d2): rational): bool =
+  n1*d2 < n2*d1
 
-let (<=:) (x: rational) (y: rational): bool =
-  raise NotImplemented
+let (<=:) ((n1, d1): rational) ((n2, d2): rational): bool =
+  n1*d2 <= n2*d1
 
-let (>:) (x: rational) (y: rational): bool =
-  raise NotImplemented
+let (>:) ((n1, d1): rational) ((n2, d2): rational): bool =
+  n1*d2 > n2*d1
 
-let (>=:) (x: rational) (y: rational): bool =
-  raise NotImplemented
+let (>=:) ((n1, d1): rational) ((n2, d2): rational): bool =
+  n1*d2 >= n2*d1
 
 let string_of_rational ((n, d): rational): string =
   if d = 1 then string_of_int n
