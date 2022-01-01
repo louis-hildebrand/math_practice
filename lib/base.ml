@@ -9,6 +9,8 @@ type expr =
   | Mul of expr list   (* e1 * e2 * e3 * ... *)
   | Div of expr * expr (* e1 / e2 *)
 
+type rational = int * int
+
 type operation =
   | ONeg
   | OAdd
@@ -52,6 +54,11 @@ let rec flatten (e: expr): expr =
   | Div (e1, e2) -> Div (flatten e1, flatten e2)
 
 (* Public functions --------------------------------------------------------- *)
+(* TODO: Remove *)
+exception NotImplemented
+let new_rational (numerator: int) (denominator: int): rational =
+  raise NotImplemented
+
 let string_of_expr (e: expr): string =
   let rec string_of_expr' (ctxt: expr_context option) (e: expr): string =
     match e with
@@ -119,6 +126,9 @@ let string_of_expr (e: expr): string =
   let e' = flatten e in
   string_of_expr' None e'
 
+let string_of_rational (x: rational): string =
+  raise NotImplemented
+
 let rec eval (e: expr) (vals: (string * float) list): float =
   match e with
   | Z (n) -> float_of_int n
@@ -139,6 +149,9 @@ let rec eval (e: expr) (vals: (string * float) list): float =
       if denom = 0.0 then raise (Undefined (sprintf "Attempt to divide by zero in expression %s." (string_of_expr e)))
       else let numer = eval e1 vals in
       numer /. denom
+
+let evalr (e: expr) (vals: (string * rational) list): rational =
+  raise NotImplemented
 
 let gcd (n: int) (m: int): int =
   let rec gcd' big small =
