@@ -39,7 +39,7 @@ val string_of_rational: rational -> string
 val eval: expr -> (string * float) list -> float
 
 (** Evaluates an expression involving only rational numbers. *)
-val evalr: expr -> (string * rational) list -> rational
+val eval_rational: expr -> (string * rational) list -> rational
 
 (** Simplifies the given expression. *)
 val simplify: expr -> expr

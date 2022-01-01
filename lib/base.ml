@@ -153,7 +153,7 @@ let rec eval (e: expr) (vals: (string * float) list): float =
       else let numer = eval e1 vals in
       numer /. denom
 
-let evalr (e: expr) (vals: (string * rational) list): rational =
+let eval_rational (e: expr) (vals: (string * rational) list): rational =
   raise NotImplemented
 
 let gcd (n: int) (m: int): int =
