@@ -99,6 +99,11 @@ let next_fractional_exc_min_const_equal_max_const _ =
     (Invalid_argument "Minimum constant must be less than maximum constant.")
     (fun () -> next_fractional 0 0 2 zero_r zero_r 2)
 
+let next_fractional_exc_no_possible_const _ =
+  assert_raises
+    (Invalid_argument "No constants satisfy the given conditions (>= 1/10, < 2/10, denominator < 2).")
+    (fun () -> next_fractional 0 0 2 (new_rational 1 10) (new_rational 2 10) 2)
+
 let next_fractional_exc_max_denom_too_small _ =
   assert_raises
     (Invalid_argument "Maximum denominator must be greater than 1.")
@@ -122,6 +127,7 @@ let tests =
     "next_fractional_exc_min_depth_greater_than_max_depth">:: next_fractional_exc_min_depth_greater_than_max_depth;
     "next_fractional_exc_width_invalid">:: next_fractional_exc_width_invalid;
     "next_fractional_exc_min_const_equal_max_const">:: next_fractional_exc_min_const_equal_max_const;
+    "next_fractional_exc_no_possible_const">:: next_fractional_exc_no_possible_const;
     "next_fractional_exc_max_denom_too_small">:: next_fractional_exc_max_denom_too_small;
   ]
 
