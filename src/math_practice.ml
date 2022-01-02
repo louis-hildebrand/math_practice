@@ -60,7 +60,7 @@ let anon_fun (arg: string): unit =
 (* Subcommands ------------------------------------------------------------------------------------------------------ *)
 let generate_arithmetic_questions (num_questions: int) (sd: int): expr list =
   seed sd;
-  List.map (fun () -> next_fractional 1 1 2 (-99) 100) (repeat () num_questions)
+  List.map (fun () -> next_fractional 1 1 2 (new_rational (-99) 1) (new_rational 100 1) 10) (repeat () num_questions)
 
 let ask_arithmetic (quiet: bool) (num_questions: int) (sd: int): unit =
   let print_question n e =
