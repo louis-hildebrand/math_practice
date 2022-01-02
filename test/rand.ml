@@ -1,5 +1,6 @@
 open Dobson.Base
 open Dobson.Rand
+open Dobson.Rational
 open OUnit2
 open Printf
 open Test_helper
@@ -8,18 +9,20 @@ open Test_helper
 let min_depth = 1
 let max_depth = 3
 let width = 3
-let min_const = -2
-let max_const = 3
+let min_const = new_rational (-2) 1
+let max_const = new_rational 3 1
+let expected_max_denom = 10
 let (random_exprs: (int * expr) list) =
   let generate_rand_expr s =
     seed s;
-    (s, next_fractional min_depth max_depth width min_const max_const)
+    (s, next_fractional min_depth max_depth width min_const max_const expected_max_denom)
   in
   List.map generate_rand_expr (tabulate 0 100)
-let (random_consts: int list) =
+let (random_consts: rational list) =
   let rec get_consts e = 
     match e with
-    | Z (n) -> [n]
+    | Z (n) -> [new_rational n 1]
+    | Div (Z n, Z d) -> [new_rational n d]
     | Var _ -> []
     | Neg e -> get_consts e
     | Add es
@@ -29,129 +32,77 @@ let (random_consts: int list) =
   List.fold_left (fun acc e -> acc @ (get_consts e)) [] (List.map (fun (_, e) -> e) random_exprs)
 
 let next_fractional_min_depth _ =
-  let shallow_exprs = List.filter (fun (_, e) -> (depth e) < min_depth) random_exprs in
-  match shallow_exprs with
-  | [] -> ()
-  | (s, e)::_ -> assert_failure
-      (sprintf "Found shallow expression:\n \
-                 - seed: %d\n \
-                 - expression: %s\n \
-                 - expected min. depth: %d\n \
-                 - actual depth: %d"
-                s (string_of_expr e) min_depth (depth e))
+  List.iter (fun (s, e) -> assert_expr_min_depth min_depth s e) random_exprs
 
 let next_fractional_max_depth _ =
-  let deep_exprs = List.filter (fun (_, e) -> (depth e) > max_depth) random_exprs in
-  match deep_exprs with
-  | [] -> ()
-  | (s, e)::_ -> assert_failure
-      (sprintf "Found expression that is too deep:\n \
-                 - seed: %d\n \
-                 - expression: %s\n \
-                 - expected max. depth: %d\n \
-                 - actual depth: %d"
-               s (string_of_expr e) max_depth (depth e))
+  List.iter (fun (s, e) -> assert_expr_max_depth max_depth s e) random_exprs
 
 let next_fractional_all_depths _ =
-  (* Asserts a failure if there are no expressions with depth n *)
-  let f n =
-    let exprs_with_depth = List.filter (fun (_, e) -> n = (depth e)) random_exprs in
-    match exprs_with_depth with
-    | [] -> assert_failure (sprintf "Missing expression with depth %d." n)
-    | _ -> ()
-  in
-  List.iter f (tabulate min_depth max_depth)
+  assert_expr_all_depths (tabulate min_depth max_depth) random_exprs
 
 let next_fractional_max_width _ =
-  (* Asserts a failure if there is any operation in e with more than w arguments *)
-  let rec f w e =
-    match e with
-    | Z _
-    | Var _
-    | Neg _ -> ()
-    | Add es
-    | Mul es ->
-        if List.length es > w then 
-          assert_failure (sprintf "Found expression that is too wide:\n \
-             - expression: %s\n \
-             - expected max. width: %d\n \
-             - actual width: %d"
-            (string_of_expr e) width (List.length es))
-        else
-          List.iter (f w) es
-    | Div (e1, e2) -> f w e1; f w e2
-  in
-  List.iter (fun (_, e) -> f width e) random_exprs
+  List.iter (fun (s, e) -> assert_expr_max_width width s e) random_exprs
 
 let next_fractional_min_const _ =
-  let below_min_exprs = List.filter (fun n -> n < min_const) random_consts in
-  match below_min_exprs with
-  | [] -> ()
-  | n::_ -> assert_failure 
-      (sprintf "Found expression containing constant %d. Expected min. constant to be %d." n min_const)
+  let min_rational acc r = if r <: acc then r else acc in
+  (* Assume there is at least 1 constant in the list. *)
+  let actual_min = List.fold_left min_rational (List.hd random_consts) (List.tl random_consts) in
+  assert_at_least ~geq: (>=:) ~printer: string_of_rational min_const actual_min
 
 let next_fractional_max_const _ =
-  let below_max_exprs = List.filter (fun n -> n >= max_const) random_consts in
-  match below_max_exprs with
-  | [] -> ()
-  | n::_ -> assert_failure 
-      (sprintf "Found expression containing constant %d. Expected max. constant to be %d (exclusive)." n max_const)
+  let max_rational acc r = if r <: acc then acc else r in
+  (* Assume there is at least 1 constant in the list. *)
+  let actual_max = List.fold_left max_rational (List.hd random_consts) (List.tl random_consts) in
+  assert_at_most ~leq: (<=:) ~printer: string_of_rational max_const actual_max
 
-let next_fractional_all_consts _ =
-  let f n =
-    if List.mem n random_consts then ()
-    else assert_failure (sprintf "Missing expression with constant %d." n)
-  in
-  List.iter f (tabulate min_const (max_const - 1))
+let next_fractional_max_denom _ =
+  let actual_max_denom = List.fold_left (fun acc (_, e) -> max acc (max_denom e)) 0 random_exprs in
+  assert_equal_int expected_max_denom actual_max_denom
+
+let next_fractional_not_simplified _ =
+  List.iter (fun (s, e) -> assert_expr_unsimplified s e) random_exprs
+
+let next_fractional_no_div_by_zero0 _ =
+  List.iter (fun (s, e) -> assert_no_div_by_zero s e) random_exprs
 
 let next_fractional_no_div_by_zero1 _ =
-  let f (_, e) =
-    if has_div_by_zero e then assert_failure (sprintf "Found expression with division by zero: %s." (string_of_expr e))
-    else ()
-  in
-  List.iter f random_exprs
-
-let next_fractional_no_div_by_zero2 _ =
-  let random_exprs = List.map (fun () -> next_fractional 2 2 2 0 1) (repeat () 100) in
-  let f e =
-    if has_div_by_zero e then assert_failure (sprintf "Found expression with division by zero: %s." (string_of_expr e))
-    else ()
-  in
-  List.iter f random_exprs
-
-let next_fractional_no_div_by_zero3 _ =
-  let random_exprs = List.map (fun () -> next_fractional 2 2 2 0 2) (repeat () 100) in
-  let f e =
-    if has_div_by_zero e then assert_failure (sprintf "Found expression with division by zero: %s." (string_of_expr e))
-    else ()
-  in
-  List.iter f random_exprs
+  let f s = seed s; (s, next_fractional 2 2 2 (new_rational 0 1) (new_rational 1 1) 10) in
+  let random_exprs = List.map f (tabulate 0 100) in
+  List.iter (fun (s, e) -> assert_no_div_by_zero s e) random_exprs
 
 (* next_fractional: exceptions -------------------------------------------------------------------------------------- *)
+let zero_r = new_rational 0 1
+let one_r = new_rational 1 1
+
 let next_fractional_exc_min_depth_invalid _ =
   assert_raises
     (Invalid_argument "Minimum depth of expression cannot be negative.")
-    (fun () -> next_fractional (-1) 3 2 0 1)
+    (fun () -> next_fractional (-1) 3 2 zero_r one_r 2)
 
 let next_fractional_exc_max_depth_invalid _ =
   assert_raises
     (Invalid_argument "Maximum depth of expression cannot be negative.")
-    (fun () -> next_fractional 0 (-1) 2 0 1)
+    (fun () -> next_fractional 0 (-1) 2 zero_r one_r 2)
 
 let next_fractional_exc_min_depth_greater_than_max_depth _ =
   assert_raises
     (Invalid_argument "Minimum depth of expression must be less than or equal to maximum depth.")
-    (fun () -> next_fractional 1 0 2 0 1)
+    (fun () -> next_fractional 1 0 2 zero_r one_r 2)
 
 let next_fractional_exc_width_invalid _ =
   assert_raises
     (Invalid_argument "Width of expression must be at least 2.")
-    (fun () -> next_fractional 0 0 1 0 1)
+    (fun () -> next_fractional 0 0 1 zero_r one_r 2)
 
 let next_fractional_exc_min_const_equal_max_const _ =
   assert_raises
     (Invalid_argument "Minimum constant must be less than maximum constant.")
-    (fun () -> next_fractional 0 0 2 0 0)
+    (fun () -> next_fractional 0 0 2 zero_r zero_r 2)
+
+let next_fractional_exc_max_denom_too_small _ =
+  assert_raises
+    (Invalid_argument "Maximum denominator must be greater than 1.")
+    (fun () -> next_fractional 0 0 2 zero_r one_r 1)
 
 (* List and run tests ----------------------------------------------------------------------------------------------- *)
 let tests =
@@ -162,15 +113,16 @@ let tests =
     "next_fractional_max_width">:: next_fractional_max_width;
     "next_fractional_min_const">:: next_fractional_min_const;
     "next_fractional_max_const">:: next_fractional_max_const;
-    "next_fractional_all_consts">:: next_fractional_all_consts;
+    "next_fractional_max_denom">:: next_fractional_max_denom;
+    "next_fractional_not_simplified">:: next_fractional_not_simplified;
+    "next_fractional_no_div_by_zero0">:: next_fractional_no_div_by_zero0;
     "next_fractional_no_div_by_zero1">:: next_fractional_no_div_by_zero1;
-    "next_fractional_no_div_by_zero2">:: next_fractional_no_div_by_zero2;
-    "next_fractional_no_div_by_zero3">:: next_fractional_no_div_by_zero3;
     "next_fractional_exc_min_depth_invalid">:: next_fractional_exc_min_depth_invalid;
     "next_fractional_exc_max_depth_invalid">:: next_fractional_exc_max_depth_invalid;
     "next_fractional_exc_min_depth_greater_than_max_depth">:: next_fractional_exc_min_depth_greater_than_max_depth;
     "next_fractional_exc_width_invalid">:: next_fractional_exc_width_invalid;
     "next_fractional_exc_min_const_equal_max_const">:: next_fractional_exc_min_const_equal_max_const;
+    "next_fractional_exc_max_denom_too_small">:: next_fractional_exc_max_denom_too_small;
   ]
 
 let () =
