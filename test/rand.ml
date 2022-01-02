@@ -65,8 +65,9 @@ let next_fractional_not_simplified _ =
 let next_fractional_no_div_by_zero0 _ =
   List.iter (fun (s, e) -> assert_no_div_by_zero s e) random_exprs
 
+(* Check for division by 0 in the case where the only allowed constant is 0. *)
 let next_fractional_no_div_by_zero1 _ =
-  let f s = seed s; (s, next_fractional 2 2 2 (new_rational 0 1) (new_rational 1 1) 10) in
+  let f s = seed s; (s, next_fractional 2 2 2 (new_rational 0 1) (new_rational 1 2) 3) in
   let random_exprs = List.map f (tabulate 0 100) in
   List.iter (fun (s, e) -> assert_no_div_by_zero s e) random_exprs
 
