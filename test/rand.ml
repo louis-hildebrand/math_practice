@@ -2,7 +2,6 @@ open Dobson.Base
 open Dobson.Rand
 open Dobson.Rational
 open OUnit2
-open Printf
 open Test_helper
 
 (* next_fractional: values ------------------------------------------------------------------------------------------ *)
@@ -57,7 +56,7 @@ let next_fractional_max_const _ =
 
 let next_fractional_max_denom _ =
   let actual_max_denom = List.fold_left (fun acc (_, e) -> max acc (max_denom e)) 0 random_exprs in
-  assert_equal_int expected_max_denom actual_max_denom
+  assert_at_most ~printer: string_of_int expected_max_denom actual_max_denom
 
 let next_fractional_not_simplified _ =
   List.iter (fun (s, e) -> assert_expr_unsimplified s e) random_exprs
@@ -102,7 +101,7 @@ let next_fractional_exc_min_const_equal_max_const _ =
 
 let next_fractional_exc_no_possible_const _ =
   assert_raises
-    (Invalid_argument "No constants satisfy the given conditions (>= 1/10, < 2/10, denominator < 2).")
+    (Invalid_argument "No constants satisfy the given conditions (>= 1/10, < 1/5, denominator < 2).")
     (fun () -> next_fractional 0 0 2 (new_rational 1 10) (new_rational 2 10) 2)
 
 let next_fractional_exc_max_denom_too_small _ =

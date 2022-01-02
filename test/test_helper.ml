@@ -5,7 +5,7 @@ open Printf
 
 (* Calculates the depth of an expression tree. *)
 (* TODO: Add option so that expressions of the form Div (Z _, Z _) have depth 1? *)
-let rec depth ?(frac: bool = true) (e: expr): int =
+let rec depth (e: expr): int =
   match e with
   | Z _
   | Div (Z _, Z _)
@@ -57,7 +57,7 @@ let gcd (n: int) (m: int): int =
 let is_reduced_fraction ((n: int), (d: int)): bool =
   1 = gcd n d
 
-let rec is_simplified (e: expr): bool =
+let is_simplified (e: expr): bool =
   match e with
   | Z _
   | Var _ -> true
