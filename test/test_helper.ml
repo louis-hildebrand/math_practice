@@ -179,3 +179,26 @@ let assert_expr_unsimplified (seed: int) (e: expr): unit =
   assert_bool
     msg
     (not (is_simplified e))
+
+exception NotImplemented
+(* Truncates x to n decimal places. *)
+let truncaten (n: int) (x: float): float =
+  raise NotImplemented
+
+(* Asserts that x has fewer than n decimal places. *)
+let assert_max_decimal_places (n: int) (x: float): unit = 
+  assert_equal
+    ~msg: (sprintf "Expected less than %d decimal places, but found %g with more." n x)
+    (truncaten (n - 1) x)
+    x
+
+(* Asserts that all floating-point numbers in e have fewer than n decimal places. *)
+let rec assert_max_decimal_places_expr (n: int) (e: expr): unit =
+  match e with
+  | Z _ -> ()
+  | R x -> assert_max_decimal_places n x
+  | Var _ -> ()
+  | Neg e' -> assert_max_decimal_places_expr n e'
+  | Add es
+  | Mul es -> List.iter (assert_max_decimal_places_expr n) es
+  | Div (e1, e2) -> assert_max_decimal_places_expr n e1; assert_max_decimal_places_expr n e2
