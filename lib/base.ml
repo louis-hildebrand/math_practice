@@ -1,6 +1,6 @@
 open Printf
 
-(* Types -------------------------------------------------------------------- *)
+(* Types ------------------------------------------------------------------------------------------------------------ *)
 type expr =
   | Z of int           (* Integer *)
   | R of float         (* Real number *)
@@ -18,13 +18,13 @@ type operation =
 
 type expr_context = operation * int (* Parent operation and position (starting at 0) *)
 
-(* Exceptions --------------------------------------------------------------- *)
+(* Exceptions ------------------------------------------------------------------------------------------------------- *)
 exception InvalidExpr of string
 exception Undefined of string
 exception UndefinedVariable of string
 exception MultipleDefinitions of string
 
-(* Helper functions --------------------------------------------------------- *)
+(* Helper functions ------------------------------------------------------------------------------------------------- *)
 (* TODO: Add 'distribute' flag to allow for distributing negative sign to arguments in Neg (Add es) *)
 let rec flatten (e: expr): expr =
   match e with
@@ -43,10 +43,10 @@ let rec flatten (e: expr): expr =
   | Mul es -> Mul (List.map flatten es)
   | Div (e1, e2) -> Div (flatten e1, flatten e2)
 
-(* Remove the trailing zero (e.g. show 3.0 as 3 instead of 3.) *)
+(* Remove the trailing period (e.g. show 3.0 as 3 instead of 3.) *)
 let string_of_float = sprintf "%.12g"
 
-(* Public functions --------------------------------------------------------- *)
+(* Public functions ------------------------------------------------------------------------------------------------- *)
 let string_of_expr (e: expr): string =
   let rec string_of_expr' (ctxt: expr_context option) (e: expr): string =
     match e with
