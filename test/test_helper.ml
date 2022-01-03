@@ -122,8 +122,8 @@ let assert_at_most ?(leq: 'a -> 'a -> bool = (<=)) ?(msg: string option) ?(print
 let assert_expr_min_depth (expected_depth: int) (seed: int) (e: expr): unit =
   let actual_depth = depth e in
   let msg = sprintf
-    "Expected minimum depth to be %d but found expression with depth %d:\n
-     - seed: %d\n
+    "Expected minimum depth to be %d but found expression with depth %d:\n\
+     - seed: %d\n\
      - expression: %s"
     expected_depth actual_depth seed (string_of_expr e)
   in
@@ -132,8 +132,8 @@ let assert_expr_min_depth (expected_depth: int) (seed: int) (e: expr): unit =
 let assert_expr_max_depth (expected_depth: int) (seed: int) (e: expr): unit =
   let actual_depth = depth e in
   let msg = sprintf
-    "Expected maximum depth to be %d but found expression with depth %d:\n
-     - seed: %d\n
+    "Expected maximum depth to be %d but found expression with depth %d:\n\
+     - seed: %d\n\
      - expression: %s"
     expected_depth actual_depth seed (string_of_expr e)
   in
@@ -150,8 +150,8 @@ let assert_expr_all_depths (expected_depths: int list) (es: (int * expr) list): 
 let assert_expr_max_width (expected_max_width: int) (seed: int) (e: expr): unit =
   let actual_max_width = max_width e in
   let msg = sprintf
-    "Expected maximum width to be at most %d but found expression with maximum width %d:\n
-     - seed: %d\n
+    "Expected maximum width to be at most %d but found expression with maximum width %d:\n\
+     - seed: %d\n\
      - expression: %s"
     expected_max_width actual_max_width seed (string_of_expr e)
   in
@@ -159,8 +159,8 @@ let assert_expr_max_width (expected_max_width: int) (seed: int) (e: expr): unit 
 
 let assert_no_div_by_zero (seed: int) (e: expr): unit =
   let msg = sprintf
-    "Found expression with division by zero:\n
-     - seed: %d\n
+    "Found expression with division by zero:\n\
+     - seed: %d\n\
      - expression: %s"
     seed (string_of_expr e)
   in
@@ -170,8 +170,8 @@ let assert_no_div_by_zero (seed: int) (e: expr): unit =
 
 let assert_expr_unsimplified (seed: int) (e: expr): unit =
   let msg = sprintf
-    "Found expression that is already simplified:\n
-     - seed: %d\n
+    "Found expression that is already simplified:\n\
+     - seed: %d\n\
      - expression: %s"
     seed (string_of_expr e)
   in
