@@ -8,6 +8,7 @@ open Printf
 let rec depth (e: expr): int =
   match e with
   | Z _
+  | R _
   | Div (Z _, Z _)
   | Var _ -> 0
   | Neg e' -> depth e'
@@ -18,6 +19,7 @@ let rec depth (e: expr): int =
 let rec max_width (e: expr): int =
   match e with
   | Z _
+  | R _
   | Var _ -> 1
   | Neg e' -> max_width e'
   | Add es
@@ -27,6 +29,7 @@ let rec max_width (e: expr): int =
 let rec max_denom (e: expr): int =
   match e with
   | Z _ -> 1
+  | R x -> raise (NonRational (sprintf "max_denom found floating-point number (%g)." x))
   | Var _ -> 0
   | Div (Z _, Z d) -> d
   | Neg e' -> max_denom e'
@@ -38,6 +41,7 @@ let rec max_denom (e: expr): int =
 let rec has_div_by_zero (e: expr): bool =
   match e with
   | Z _
+  | R _
   | Var _ -> false
   | Neg e -> has_div_by_zero e
   | Add es
@@ -60,6 +64,7 @@ let is_reduced_fraction ((n: int), (d: int)): bool =
 let is_simplified (e: expr): bool =
   match e with
   | Z _
+  | R _
   | Var _ -> true
   | Div (Z n, Z d) when is_reduced_fraction (n, d) -> true
   | Neg (Z n) when n >= 0 -> true
@@ -96,12 +101,10 @@ let assert_at_least ?(geq: 'a -> 'a -> bool = (>=)) ?(msg: string option) ?(prin
   if geq actual expected then
     ()
   else 
-    let msg' = match msg with
-      | None ->
-          (match printer with
-          | None -> "Value less than required."
-          | Some p -> sprintf "Expected value to be at least %s but received %s." (p expected) (p actual))
-      | Some str -> str
+    let msg' = match msg, printer with
+      | None, None -> "Value less than required."
+      | None, Some p -> sprintf "Expected value to be at least %s but received %s." (p expected) (p actual)
+      | Some str, _ -> str
     in
     assert_failure msg'
 
@@ -110,12 +113,10 @@ let assert_at_most ?(leq: 'a -> 'a -> bool = (<=)) ?(msg: string option) ?(print
   if leq actual expected then
     () 
   else
-    let msg' = match msg with
-      | None ->
-          (match printer with
-          | None -> "Value greater than required."
-          | Some p -> sprintf "Expected value to be at most %s but received %s." (p expected) (p actual))
-      | Some str -> str
+    let msg' = match msg, printer with
+      | None, None -> "Value greater than required."
+      | None, Some p -> sprintf "Expected value to be at most %s but received %s." (p expected) (p actual)
+      | Some str, _ -> str
     in
     assert_failure msg'
 

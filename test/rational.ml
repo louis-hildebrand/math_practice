@@ -310,6 +310,11 @@ let eval_rational_exc_multiple_defs _ =
     (fun () -> eval_rational (Add [Var "x"; Z 1; Var "y"]) 
       [("x", new_rational 1 1); ("y", new_rational 5 2); ("y", new_rational 5 2)])
 
+let eval_rational_exc_real_num _ =
+  assert_raises
+    (NonRational "Floating-point value 2.5 is not an integer or a fraction.")
+    (fun () -> eval_rational (Add [Div (Z 5, Z 2); R 2.5]) [])
+
 (* List and run tests ----------------------------------------------------------------------------------------------- *)
 let tests =
   "rational_tests">::: [
@@ -370,6 +375,7 @@ let tests =
     "eval_rational_exc_mul_num_args">:: eval_rational_exc_mul_num_args;
     "eval_rational_exc_no_def">:: eval_rational_exc_no_def;
     "eval_rational_exc_multiple_defs">:: eval_rational_exc_multiple_defs;
+    "eval_rational_exc_real_num">:: eval_rational_exc_real_num;
   ]
 
 let () =
