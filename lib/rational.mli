@@ -3,6 +3,9 @@ open Base
 (** Rational number (numerator and denominator). *)
 type rational
 
+(** Attempt to evaluate an expression that includes constants other than integers and fractions. *)
+exception NonRational of string
+
 (** Instantiates a rational number. *)
 val new_rational: int -> int -> rational
 

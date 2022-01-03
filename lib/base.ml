@@ -1,8 +1,9 @@
 open Printf
 
-(* Types -------------------------------------------------------------------- *)
+(* Types ------------------------------------------------------------------------------------------------------------ *)
 type expr =
   | Z of int           (* Integer *)
+  | R of float         (* Real number *)
   | Var of string      (* Named variable *)
   | Neg of expr        (* -e1 *)
   | Add of expr list   (* e1 + e2 + e3 + ... *)
@@ -17,17 +18,18 @@ type operation =
 
 type expr_context = operation * int (* Parent operation and position (starting at 0) *)
 
-(* Exceptions --------------------------------------------------------------- *)
+(* Exceptions ------------------------------------------------------------------------------------------------------- *)
 exception InvalidExpr of string
 exception Undefined of string
 exception UndefinedVariable of string
 exception MultipleDefinitions of string
 
-(* Helper functions --------------------------------------------------------- *)
+(* Helper functions ------------------------------------------------------------------------------------------------- *)
 (* TODO: Add 'distribute' flag to allow for distributing negative sign to arguments in Neg (Add es) *)
 let rec flatten (e: expr): expr =
   match e with
   | Z _
+  | R _
   | Var _ -> e
   | Neg e' -> Neg (flatten e')
   | Add es ->
@@ -41,7 +43,10 @@ let rec flatten (e: expr): expr =
   | Mul es -> Mul (List.map flatten es)
   | Div (e1, e2) -> Div (flatten e1, flatten e2)
 
-(* Public functions --------------------------------------------------------- *)
+(* Remove the trailing period (e.g. show 3.0 as 3 instead of 3.) *)
+let string_of_float = sprintf "%.12g"
+
+(* Public functions ------------------------------------------------------------------------------------------------- *)
 let string_of_expr (e: expr): string =
   let rec string_of_expr' (ctxt: expr_context option) (e: expr): string =
     match e with
@@ -50,6 +55,11 @@ let string_of_expr (e: expr): string =
           "(" ^ (string_of_int n) ^ ")"
         else
           string_of_int n
+    | R x ->
+        if x < 0.0 && (ctxt != None && ctxt != Some (OAdd, 0)) then
+          "(" ^ (string_of_float x) ^ ")"
+        else
+          string_of_float x
     | Var (name) ->
         name
     | Neg (Z n) ->
@@ -68,6 +78,7 @@ let string_of_expr (e: expr): string =
         let append (i, acc) e =
           let acc' = match e with
             | Z n when n < 0 -> acc ^ " - " ^ (string_of_int (-n))
+            | R x when x < 0.0 -> acc ^ " - " ^ (string_of_float (-.x))
             | Neg e' -> acc ^ " - " ^ (string_of_expr' (Some (OAdd, i)) e')
             | _ -> acc ^ " + " ^ (string_of_expr' (Some (OAdd, i)) e)
           in
@@ -112,6 +123,7 @@ let string_of_expr (e: expr): string =
 let rec eval (e: expr) (vals: (string * float) list): float =
   match e with
   | Z (n) -> float_of_int n
+  | R x -> x
   | Var (name) ->
       let vs = List.map (fun (_, v) -> v) (List.filter (fun (n, _) -> n = name) vals) in
       (match vs with

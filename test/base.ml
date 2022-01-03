@@ -24,6 +24,26 @@ let string_of_expr_neg_int_negative _ =
     "-(-1)"
     (string_of_expr (Neg (Z (-1))))
 
+let string_of_expr_real_positive _ =
+  assert_equal_string
+    "2.5"
+    (string_of_expr (R 2.50))
+
+let string_of_expr_real_negative _ =
+  assert_equal_string
+    "-3"
+    (string_of_expr (R (-3.0)))
+
+let string_of_expr_neg_real_positive _ =
+  assert_equal_string
+    "-0.02"
+    (string_of_expr (Neg (R 0.02)))
+
+let string_of_expr_neg_real_negative _ =
+  assert_equal_string
+    "-(-10.52)"
+    (string_of_expr (Neg (R (-10.52))))
+
 let string_of_expr_var _ =
   assert_equal_string
     "x"
@@ -36,28 +56,34 @@ let string_of_expr_neg_var _ =
 
 let string_of_expr_add0 _ =
   assert_equal_string
-    "1 + 2 - 3"
-    (string_of_expr (Add [Z 1; Z 2; Z (-3)]))
+    "1 + 2.2 - 3"
+    (string_of_expr (Add [Z 1; R 2.2; Z (-3)]))
 
 let string_of_expr_add1 _ =
   assert_equal_string
-    "-1 + 2 + 3"
-    (string_of_expr (Add [Z (-1); Z 2; Z 3]))
+    "-1 - 2.25 + 3"
+    (string_of_expr (Add [Z (-1); R (-2.25); Z 3]))
 
 let string_of_expr_add_neg0 _ =
   assert_equal_string
-    (string_of_expr (Add [Z 1; Z 2; Z (-3)]))
-    (string_of_expr (Add [Z 1; Z 2; Neg (Z 3)]))
+    (string_of_expr (Add [Z 1; R 2.2; Z (-3)]))
+    (string_of_expr (Add [Z 1; R 2.2; Neg (Z 3)]))
 
 let string_of_expr_add_neg1 _ =
   assert_equal_string
-    (string_of_expr (Add [Z (-1); Z 2; Z 3]))
-    (string_of_expr (Add [Neg (Z 1); Z 2; Z 3]))
+    (string_of_expr (Add [Z (-1); R (-2.25); Z 3]))
+    (string_of_expr (Add [Neg (Z 1); Neg (R 2.25); Z 3]))
 
-let string_of_expr_add_neg2 _ =
+let string_of_expr_add_neg_neg _ =
   assert_equal_string
-    "1 - (-(-x))"
-    (string_of_expr (Add [Z 1; Neg (Neg (Neg (Var "x")))]))
+    "1 - (-2) - (-3) - (-2.5) - (-3.66) - (-(-x))"
+    (string_of_expr (Add [
+        Z 1; 
+        Neg (Z (-2)); 
+        Neg (Neg (Z 3)); 
+        Neg (R (-2.5));
+        Neg (Neg (R 3.66)); 
+        Neg (Neg (Neg (Var "x")))]))
 
 let string_of_expr_neg_add _ =
   assert_equal_string
@@ -66,23 +92,23 @@ let string_of_expr_neg_add _ =
 
 let string_of_expr_mul0 _ =
   assert_equal_string
-    "(-x) * 2 * (-3)"
-    (string_of_expr (Mul [Neg (Var "x"); Z 2; Z (-3)]))
+    "x * 2.1 * (-3)"
+    (string_of_expr (Mul [Var "x"; R 2.1; Z (-3)]))
 
 let string_of_expr_mul1 _ =
   assert_equal_string
-    "(-1) * (-x) * 3"
-    (string_of_expr (Mul [Z (-1); Neg (Var "x"); Z 3]))
+    "(-4.321) * 1 * (-x)"
+    (string_of_expr (Mul [R (-4.321); Z 1; Neg (Var "x")]))
 
 let string_of_expr_mul_neg0 _ =
   assert_equal_string
-    (string_of_expr (Mul [Z 1; Z 2; Z (-3)]))
-    (string_of_expr (Mul [Z 1; Z 2; Neg (Z 3)]))
+    (string_of_expr (Mul [Var "x"; R 2.1; Z (-3)]))
+    (string_of_expr (Mul [Var "x"; R 2.1; Neg (Z 3)]))
 
 let string_of_expr_mul_neg1 _ =
   assert_equal_string
-    (string_of_expr (Mul [Z (-1); Z 2; Z 3]))
-    (string_of_expr (Mul [Neg (Z 1); Z 2; Z 3]))
+    (string_of_expr (Mul [R (-4.321); Z 1; Neg (Var "x")]))
+    (string_of_expr (Mul [Neg (R 4.321); Z 1; Neg (Var "x")]))
 
 let string_of_expr_neg_mul _ =
   assert_equal_string
@@ -91,33 +117,28 @@ let string_of_expr_neg_mul _ =
 
 let string_of_expr_div0 _ =
   assert_equal_string
-    "2 / (-1)"
-    (string_of_expr (Div (Z 2, Z (-1))))
+    "2 / (-1.3)"
+    (string_of_expr (Div (Z 2, R (-1.3))))
 
 let string_of_expr_div1 _ =
   assert_equal_string
-    "(-2) / 1"
-    (string_of_expr (Div (Z (-2), Z 1)))
+    "(-2) / 1.1"
+    (string_of_expr (Div (Z (-2), R 1.1)))
 
 let string_of_expr_div2 _ =
   assert_equal_string
     "(-x) / 2"
     (string_of_expr (Div (Neg (Var "x"), Z 2)))
 
-let string_of_expr_div3 _ =
-  assert_equal_string
-    "2 / (-x)"
-    (string_of_expr (Div (Z 2, Neg (Var "x"))))
-
 let string_of_expr_div_neg0 _ =
   assert_equal_string
-    (string_of_expr (Div (Z 2, Z (-1))))
-    (string_of_expr (Div (Z 2, Neg (Z 1))))
+    (string_of_expr (Div (Z 2, R (-1.3))))
+    (string_of_expr (Div (Z 2, Neg (R 1.3))))
 
 let string_of_expr_div_neg1 _ =
   assert_equal_string
-    (string_of_expr (Div (Z (-2), Z 1)))
-    (string_of_expr (Div (Neg (Z 2), Z 1)))
+    (string_of_expr (Div (Z (-2), R 1.1)))
+    (string_of_expr (Div (Neg (Z 2), R 1.1)))
 
 let string_of_expr_neg_div _ =
   assert_equal_string
@@ -201,6 +222,16 @@ let eval_neg_int _ =
     (-1.0)
     (eval (Neg (Z 1)) [])
 
+let eval_real _ =
+  assert_equal_float
+    2.4
+    (eval (R 2.4) [])
+
+let eval_neg_real _ =
+  assert_equal_float
+    (-6.7)
+    (eval (Neg (R 6.7)) [])
+
 let eval_var _ =
   assert_equal_float
     2.1
@@ -213,8 +244,8 @@ let eval_neg_var _ =
 
 let eval_add_novars _ =
   assert_equal_float
-    8.0
-    (eval (Add [Z (-1); Z 2; Add [Z 3; Z 4]]) [])
+    8.7
+    (eval (Add [Z (-1); R 2.7; Add [Z 3; Z 4]]) [])
 
 let eval_add_vars _ =
   assert_equal_float
@@ -223,8 +254,8 @@ let eval_add_vars _ =
 
 let eval_mul_novars _ =
   assert_equal_float
-    24.0
-    (eval (Mul [Z 1; Z 2; Mul [Z 3; Z 4]]) [])
+    28.0
+    (eval (Mul [Z 1; Z 2; Mul [R 3.5; Z 4]]) [])
 
 let eval_mul_vars _ =
   assert_equal_float
@@ -233,8 +264,8 @@ let eval_mul_vars _ =
 
 let eval_div_novars _ =
   assert_equal_float
-    0.5
-    (eval (Div (Z 1, Div (Z 2, Z 1))) [])
+    0.75
+    (eval (Div (R 1.5, Div (Z 2, Z 1))) [])
 
 let eval_div_vars _ =
   assert_equal_float
@@ -245,8 +276,8 @@ let eval_div_vars _ =
 let eval_exc_div_by_zero _ =
   assert_raises
     (Undefined (sprintf "Attempt to divide by zero in expression %s."
-      (string_of_expr (Div (Z 1, Add [Z 1; Neg (Z 1)])))))
-    (fun () -> eval (Div (Z 1, Add [Z 1; Neg (Z 1)])) [])
+      (string_of_expr (Div (Z 1, Add [Z 1; Neg (R 0.75); R (-0.25)])))))
+    (fun () -> eval (Div (Z 1, Add [Z 1; Neg (R 0.75); R (-0.25)])) [])
 
 let eval_exc_add_num_args _ =
   assert_raises
@@ -275,13 +306,17 @@ let tests =
     "string_of_expr_int_negative">:: string_of_expr_int_negative;
     "string_of_expr_neg_int_positive">:: string_of_expr_neg_int_positive;
     "string_of_expr_neg_int_negative">:: string_of_expr_neg_int_negative;
+    "string_of_expr_real_positive">:: string_of_expr_real_positive;
+    "string_of_expr_real_negative">:: string_of_expr_real_negative;
+    "string_of_expr_neg_real_positive">:: string_of_expr_neg_real_positive;
+    "string_of_expr_neg_real_negative">:: string_of_expr_neg_real_negative;
     "string_of_expr_var">:: string_of_expr_var;
     "string_of_expr_neg_var">:: string_of_expr_neg_var;
     "string_of_expr_add0">:: string_of_expr_add0;
     "string_of_expr_add1">:: string_of_expr_add1;
     "string_of_expr_add_neg0">:: string_of_expr_add_neg0;
     "string_of_expr_add_neg1">:: string_of_expr_add_neg1;
-    "string_of_expr_add_neg2">:: string_of_expr_add_neg2;
+    "string_of_expr_add_neg_neg">:: string_of_expr_add_neg_neg;
     "string_of_expr_neg_add">:: string_of_expr_neg_add;
     "string_of_expr_mul0">:: string_of_expr_mul0;
     "string_of_expr_mul1">:: string_of_expr_mul1;
@@ -291,7 +326,6 @@ let tests =
     "string_of_expr_div0">:: string_of_expr_div0;
     "string_of_expr_div1">:: string_of_expr_div1;
     "string_of_expr_div2">:: string_of_expr_div2;
-    "string_of_expr_div3">:: string_of_expr_div3;
     "string_of_expr_div_neg0">:: string_of_expr_div_neg0;
     "string_of_expr_div_neg1">:: string_of_expr_div_neg1;
     "string_of_expr_neg_div">:: string_of_expr_neg_div;
@@ -308,6 +342,8 @@ let tests =
     "string_of_expr_exc_test1">:: string_of_expr_exc_test1;
     "eval_int">:: eval_int;
     "eval_neg_int">:: eval_neg_int;
+    "eval_real">:: eval_real;
+    "eval_neg_real">:: eval_neg_real;
     "eval_var">:: eval_var;
     "eval_neg_var">:: eval_neg_var;
     "eval_add_novars">:: eval_add_novars;

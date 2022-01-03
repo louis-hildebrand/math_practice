@@ -3,6 +3,8 @@ open Printf
 
 type rational = int * int
 
+exception NonRational of string
+
 (* Helper functions ------------------------------------------------------------------------------------------------- *)
 (* Computes the greatest common divisor of n and m. *)
 let gcd (n: int) (m: int): int =
@@ -88,6 +90,7 @@ let string_of_rational ((n, d): rational): string =
 let rec eval_rational (e: expr) (vals: (string * rational) list): rational =
   match e with
   | Z n -> new_rational n 1
+  | R x -> raise (NonRational (sprintf "Floating-point value %g is not an integer or a fraction." x))
   | Var name -> 
       let vs = List.map (fun (_, v) -> v) (List.filter (fun (n, _) -> n = name) vals) in
       (match vs with
