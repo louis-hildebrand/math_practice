@@ -147,3 +147,8 @@ let next_fractional (min_depth: int) (max_depth: int) (width: int) (min_const: r
       Div (numer, denom)
     in
     next_fractional' min_depth max_depth
+
+(* TODO: Remove exception *)
+exception NotImplemented
+let next_decimal (_: int) (_: int) (_: int) (_: float) (_: float) (_: int): expr =
+  raise NotImplemented
