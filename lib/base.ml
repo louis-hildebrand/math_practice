@@ -3,6 +3,7 @@ open Printf
 (* Types -------------------------------------------------------------------- *)
 type expr =
   | Z of int           (* Integer *)
+  | R of float         (* Real number *)
   | Var of string      (* Named variable *)
   | Neg of expr        (* -e1 *)
   | Add of expr list   (* e1 + e2 + e3 + ... *)
