@@ -41,6 +41,23 @@ let string_of_rational_frac_negative_negative _ =
     "1/2"
     (string_of_rational (new_rational (-2) (-4)))
 
+(* float_of_rational ------------------------------------------------------------------------------------------------ *)
+let float_of_rational0 _ =
+  assert_equal_float
+    2.5
+    (float_of_rational (new_rational 10 4))
+
+(* expr_of_rational ------------------------------------------------------------------------------------------------- *)
+let expr_of_rational_int _ =
+  assert_equal_expr
+    (Z 2)
+    (expr_of_rational (new_rational 24 12))
+
+let expr_of_rational_fraction _ =
+  assert_equal_expr
+    (Div (Z 1, Z 3))
+    (expr_of_rational (new_rational 12 36))
+
 (* add -------------------------------------------------------------------------------------------------------------- *)
 let add_positive _ =
   assert_equal_rational
@@ -303,6 +320,9 @@ let tests =
     "string_of_rational_frac_positive_negative">:: string_of_rational_frac_positive_negative;
     "string_of_rational_frac_negative_positive">:: string_of_rational_frac_negative_positive;
     "string_of_rational_frac_negative_negative">:: string_of_rational_frac_negative_negative;
+    "float_of_rational0">:: float_of_rational0;
+    "expr_of_rational_int">:: expr_of_rational_int;
+    "expr_of_rational_fraction">:: expr_of_rational_fraction;
     "add_positive">:: add_positive;
     "add_negative">:: add_negative;
     "subtract_positive">:: subtract_positive;
