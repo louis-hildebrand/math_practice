@@ -14,6 +14,7 @@ let assert_equal_rational = assert_equal ~printer: string_of_rational ~cmp: (=:)
 let rec depth (e: expr): int =
   match e with
   | Z _
+  | R _
   | Var _ -> 0
   | Neg e -> depth e
   | Add es
@@ -24,6 +25,7 @@ let rec depth (e: expr): int =
 let rec has_div_by_zero (e: expr): bool =
   match e with
   | Z _
+  | R _
   | Var _ -> false
   | Neg e -> has_div_by_zero e
   | Add es

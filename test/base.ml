@@ -76,8 +76,14 @@ let string_of_expr_add_neg1 _ =
 
 let string_of_expr_add_neg_neg _ =
   assert_equal_string
-    "1 - (-2) - (-3) - (-2.5) - (-3.66) - (-x)"
-    (string_of_expr (Add [Z 1; Neg (Z (-2)); Neg (Neg (Z 3)); Neg (R (-2.5)); Neg (Neg (R 3.66)); Neg (Neg (Var "x"))]))
+    "1 - (-2) - (-3) - (-2.5) - (-3.66) - (-(-x))"
+    (string_of_expr (Add [
+        Z 1; 
+        Neg (Z (-2)); 
+        Neg (Neg (Z 3)); 
+        Neg (R (-2.5));
+        Neg (Neg (R 3.66)); 
+        Neg (Neg (Neg (Var "x")))]))
 
 let string_of_expr_neg_add _ =
   assert_equal_string

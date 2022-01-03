@@ -1,5 +1,6 @@
 open Dobson.Base
 open Dobson.Rand
+open Dobson.Rational
 open OUnit2
 open Printf
 open Test_helper
@@ -20,6 +21,7 @@ let (random_consts: int list) =
   let rec get_consts e = 
     match e with
     | Z (n) -> [n]
+    | R x -> raise (NonRational (sprintf "get_consts found a floating-point value (%g)." x))
     | Var _ -> []
     | Neg e -> get_consts e
     | Add es
@@ -67,6 +69,7 @@ let next_rand_max_width _ =
   let rec f w e =
     match e with
     | Z _
+    | R _
     | Var _
     | Neg _ -> ()
     | Add es
