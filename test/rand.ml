@@ -205,7 +205,7 @@ let next_decimal_exc_no_possible_const _ =
     (Invalid_argument "No constants satisfy the given conditions (>= 0.1001, < 0.1002, < 3 decimal places).")
     (fun () -> next_decimal 0 0 2 0.1001 0.1002 3)
 
-let next_decimal_exc_max_denom_too_small _ =
+let next_decimal_exc_decimal_places_too_small _ =
   assert_raises
     (Invalid_argument "Maximum number of decimal places must be at least 1.")
     (fun () -> next_decimal 0 0 2 0.0 1.0 0)
@@ -246,7 +246,7 @@ let tests =
     "next_decimal_exc_width_invalid">:: next_decimal_exc_width_invalid;
     "next_decimal_exc_min_const_equal_max_const">:: next_decimal_exc_min_const_equal_max_const;
     "next_decimal_exc_no_possible_const">:: next_decimal_exc_no_possible_const;
-    "next_decimal_exc_max_denom_too_small">:: next_decimal_exc_max_denom_too_small;
+    "next_decimal_exc_decimal_places_too_small">:: next_decimal_exc_decimal_places_too_small;
   ]
 
 let () =
