@@ -180,16 +180,17 @@ let assert_expr_unsimplified (seed: int) (e: expr): unit =
     msg
     (not (is_simplified e))
 
-exception NotImplemented
-(* Truncates x to n decimal places. *)
-let truncaten (n: int) (x: float): float =
-  raise NotImplemented
+(* Rounds x to n decimal places. *)
+let roundn (n: int) (x: float): float =
+  let roundf x = floor (x +. 0.5) in
+  let m = 10.0 ** (float_of_int n) in
+  roundf (x *. m) /. m
 
 (* Asserts that x has fewer than n decimal places. *)
 let assert_max_decimal_places (n: int) (x: float): unit = 
   assert_equal
-    ~msg: (sprintf "Expected less than %d decimal places, but found %g with more." n x)
-    (truncaten (n - 1) x)
+    ~msg: (sprintf "Expected fewer than %d decimal places, but found %g." n x)
+    (roundn (n - 1) x)
     x
 
 (* Asserts that all floating-point numbers in e have fewer than n decimal places. *)
