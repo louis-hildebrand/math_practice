@@ -58,7 +58,7 @@ let next_fractional_max_const _ =
 
 let next_fractional_max_denom _ =
   let actual_max_denom = List.fold_left (fun acc (_, e) -> max acc (max_denom e)) 0 random_exprs in
-  assert_at_most ~printer: string_of_int (expected_max_denom - 1) actual_max_denom
+  assert_at_most ~printer: string_of_int expected_max_denom actual_max_denom
 
 let next_fractional_not_simplified _ =
   List.iter (fun (s, e) -> assert_expr_unsimplified s e) random_exprs
@@ -68,7 +68,7 @@ let next_fractional_no_div_by_zero0 _ =
 
 (* Check for division by 0 in the case where the only allowed constant is 0. *)
 let next_fractional_no_div_by_zero1 _ =
-  let f s = seed s; (s, next_fractional 2 2 2 (new_rational 0 1) (new_rational 1 2) 3) in
+  let f s = seed s; (s, next_fractional 2 2 2 (new_rational 0 1) (new_rational 1 2) 2) in
   let random_exprs = List.map f (tabulate 0 100) in
   List.iter (fun (s, e) -> assert_no_div_by_zero s e) random_exprs
 
@@ -103,13 +103,13 @@ let next_fractional_exc_min_const_equal_max_const _ =
 
 let next_fractional_exc_no_possible_const _ =
   assert_raises
-    (Invalid_argument "No constants satisfy the given conditions (>= 1/10, < 1/5, denominator < 2).")
+    (Invalid_argument "No constants satisfy the given conditions (>= 1/10, < 1/5, denominator <= 2).")
     (fun () -> next_fractional 0 0 2 (new_rational 1 10) (new_rational 2 10) 2)
 
 let next_fractional_exc_max_denom_too_small _ =
   assert_raises
-    (Invalid_argument "Maximum denominator must be greater than 1.")
-    (fun () -> next_fractional 0 0 2 zero_r one_r 1)
+    (Invalid_argument "Maximum denominator must be at least 1.")
+    (fun () -> next_fractional 0 0 2 zero_r one_r 0)
 
 (* next_decimal: values --------------------------------------------------------------------------------------------- *)
 let min_depth = 1
@@ -170,7 +170,7 @@ let next_decimal_no_div_by_zero0 _ =
 
 (* Check for division by 0 in the case where the only allowed constant is 0. *)
 let next_decimal_no_div_by_zero1 _ =
-  let f s = seed s; (s, next_decimal 2 2 2 0.0 0.1 2) in
+  let f s = seed s; (s, next_decimal 2 2 2 0.0 0.1 1) in
   let random_exprs = List.map f (tabulate 0 100) in
   List.iter (fun (s, e) -> assert_no_div_by_zero s e) random_exprs
 
@@ -202,13 +202,13 @@ let next_decimal_exc_min_const_equal_max_const _ =
 
 let next_decimal_exc_no_possible_const _ =
   assert_raises
-    (Invalid_argument "No constants satisfy the given conditions (>= 0.1001, < 0.1002, < 3 decimal places).")
+    (Invalid_argument "No constants satisfy the given conditions (>= 0.1001, < 0.1002, <= 3 decimal places).")
     (fun () -> next_decimal 0 0 2 0.1001 0.1002 3)
 
 let next_decimal_exc_decimal_places_too_small _ =
   assert_raises
-    (Invalid_argument "Maximum number of decimal places must be at least 1.")
-    (fun () -> next_decimal 0 0 2 0.0 1.0 0)
+    (Invalid_argument "Maximum number of decimal places must be at least 0.")
+    (fun () -> next_decimal 0 0 2 0.0 1.0 (-1))
 
 (* List and run tests ----------------------------------------------------------------------------------------------- *)
 let tests =

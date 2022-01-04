@@ -14,7 +14,7 @@ val seed: int -> unit
  * width: Maximum width of the expression tree (inclusive)
  * min_const: Minimum value for constants (inclusive)
  * max_const: Maximum value for constants (exclusive)
- * max_denom: Maximum value for the denominators of fractions (exclusive)
+ * max_denom: Maximum value for the denominators of fractions (inclusive)
  *)
 val next_fractional: int -> int -> int -> rational -> rational -> int -> Base.expr
 
@@ -26,6 +26,6 @@ val next_fractional: int -> int -> int -> rational -> rational -> int -> Base.ex
  * width: Maximum width of the expression tree (inclusive)
  * min_const: Minimum value for constants (inclusive)
  * max_const: Maximum value for constants (exclusive)
- * decimals: Maximum number of decimal places in constants (exclusive)
+ * decimal_places: Maximum number of decimal places in constants (inclusive)
  *)
 val next_decimal: int -> int -> int -> float -> float -> int -> Base.expr

@@ -10,6 +10,7 @@ type operation =
 
 type constant =
   | Frac
+  | Decimal
 
 type element = Op of operation | Const of constant
 
@@ -65,7 +66,7 @@ let first_with_denom (min_val: rational) (d: int): rational =
 (* Generates a random rational number. *)
 let get_random_rational (min_val: rational) (max_val: rational) (max_denom: int): rational =
   let rec get_allowed n d acc =
-    if d >= max_denom then acc
+    if d > max_denom then acc
     else if (new_rational n d) >=: max_val then get_allowed (numerator_of_first_with_denom min_val (d + 1)) (d + 1) acc
     else let acc' = (new_rational n d) :: acc in get_allowed (n + 1) d acc'
   in
@@ -77,16 +78,16 @@ let get_random_rational (min_val: rational) (max_val: rational) (max_denom: int)
 (* Checks whether there exists a rational number that satisfies the given conditions.
  * - min_val: Minimum value (inclusive)
  * - max_val: Maximum value (exclusive)
- * - max_denom: Maximum value of the denominator (exclusive)
+ * - max_denom: Maximum value of the denominator (inclusive)
  * - ignore: Numbers to ignore (i.e. consider invalid)
  *)
 let exists_rational (min_val: rational) (max_val: rational) (max_denom: int) (ignore: rational list): bool =
   if min_val >=: max_val then raise (Invalid_argument "Minimum constant must be less than maximum constant.")
-  else if max_denom <= 1 then raise (Invalid_argument "Maximum denominator must be greater than 1.")
+  else if max_denom < 1 then raise (Invalid_argument "Maximum denominator must be at least 1.")
   else
     (* Checks if there exists any valid fraction with denominator >= d. *)
     let rec exists_rational' d =
-      if d >= max_denom then false
+      if d > max_denom then false
       else
         (* Checks if there exists any valid fraction greater than or equal to r and having denominator d. *)
         let rec check_val r =
@@ -110,7 +111,7 @@ let next_fractional (min_depth: int) (max_depth: int) (width: int) (min_const: r
   else if width < 2 then
     raise (Invalid_argument "Width of expression must be at least 2.")
   else if not (exists_rational min_const max_const max_denom []) then
-    let msg = sprintf "No constants satisfy the given conditions (>= %s, < %s, denominator < %d)."
+    let msg = sprintf "No constants satisfy the given conditions (>= %s, < %s, denominator <= %d)."
       (string_of_rational min_const) (string_of_rational max_const) max_denom
     in
     raise (Invalid_argument msg)
@@ -124,6 +125,8 @@ let next_fractional (min_depth: int) (max_depth: int) (width: int) (min_const: r
       | Op OMul -> Mul (get_args min_depth max_depth)
       | Op ODiv -> get_division min_depth max_depth
       | Const Frac -> expr_of_rational (get_random_rational min_const max_const max_denom)
+      (* Should never happen *)
+      | Const Decimal -> raise (Internal "Invalid output from choose_next_element: (Const Decimal).") [@coverage off]
     and get_args min_depth max_depth =
       let (min_depth', max_depth') = (max 0 (min_depth - 1), max_depth - 1) in
       List.map (fun f -> f ()) (repeat (fun () -> next_fractional' min_depth' max_depth') width)
@@ -148,7 +151,65 @@ let next_fractional (min_depth: int) (max_depth: int) (width: int) (min_const: r
     in
     next_fractional' min_depth max_depth
 
-(* TODO: Remove exception *)
-exception NotImplemented
-let next_decimal (_: int) (_: int) (_: int) (_: float) (_: float) (_: int): expr =
-  raise NotImplemented
+let roundi (x: float): int =
+  truncate (floor (x +. 0.5))
+
+(* Checks whether there exists a decimal number that satisfies the given conditions.
+ * - min_val: Minimum value (inclusive)
+ * - max_val: Maximum value (exclusive)
+ * - decimal_places: Maximum value of the denominator (inclusive)
+ * - ignore: Numbers to ignore (i.e. consider invalid)
+ *)
+let exists_decimal (min_val: float) (max_val: float) (decimal_places: int) (ignore: float list): bool =
+  if min_val >= max_val then raise (Invalid_argument "Minimum constant must be less than maximum constant.")
+  else if decimal_places < 0 then raise (Invalid_argument "Maximum number of decimal places must be at least 0.")
+  else
+    let m = 10.0 ** (float_of_int decimal_places) in
+    let min_int = roundi (min_val *. m) in (* Inclusive *)
+    let max_int = roundi (max_val *. m) in (* Exclusive *)
+    (* Checks whether n or any integer greater than n is valid. *)
+    let rec exists_decimal' n =
+      if n >= max_int then false
+      else if List.mem ((float_of_int n) /. m) ignore then exists_decimal' (n + 1)
+      else true
+    in
+    exists_decimal' min_int
+
+let get_random_decimal (min_val: float) (max_val: float) (decimal_places: int): float =
+  let m = 10.0 ** (float_of_int decimal_places) in
+  let min_int = roundi (min_val *. m) in (* Inclusive *)
+  let max_int = roundi (max_val *. m) in (* Exclusive *)
+  let out_int = min_int + Random.int (max_int - min_int) in
+  (float_of_int out_int) /. m
+
+let next_decimal (min_depth: int) (max_depth: int) (width: int) (min_const: float) (max_const: float)
+    (decimal_places: int): expr =
+  if min_depth < 0 then
+    raise (Invalid_argument "Minimum depth of expression cannot be negative.")
+  else if max_depth < 0 then
+    raise (Invalid_argument "Maximum depth of expression cannot be negative.")
+  else if min_depth > max_depth then
+    raise (Invalid_argument "Minimum depth of expression must be less than or equal to maximum depth.")
+  else if width < 2 then
+    raise (Invalid_argument "Width of expression must be at least 2.")
+  else if not (exists_decimal min_const max_const decimal_places []) then
+    raise (Invalid_argument (sprintf
+      "No constants satisfy the given conditions (>= %g, < %g, <= %d decimal places)."
+      min_const max_const decimal_places))
+  else
+    let only_zero = not (exists_decimal min_const max_const decimal_places [0.0]) in
+    let rec next_decimal' min_depth max_depth =
+      let next = choose_next_element min_depth max_depth only_zero [ONeg; OAdd; OMul] [Decimal] in
+      match next with
+      | Op ONeg -> Neg (next_decimal' min_depth max_depth)
+      | Op OAdd -> Add (get_args min_depth max_depth)
+      | Op OMul -> Mul (get_args min_depth max_depth)
+      | Const Decimal -> R (get_random_decimal min_const max_const decimal_places)
+      (* Should never happen *)
+      | Op ODiv -> raise (Internal "Invalid output from choose_next_element (Op ODiv).") [@coverage off]
+      | Const Frac -> raise (Internal "Invalid output from choose_next_element (Const Frac).") [@coverage off]
+    and get_args min_depth max_depth =
+      let (min_depth', max_depth') = (max 0 (min_depth - 1), max_depth - 1) in
+      List.map (fun f -> f ()) (repeat (fun () -> next_decimal' min_depth' max_depth') width)
+    in
+    next_decimal' min_depth max_depth

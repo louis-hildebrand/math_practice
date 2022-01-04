@@ -186,14 +186,14 @@ let roundn (n: int) (x: float): float =
   let m = 10.0 ** (float_of_int n) in
   roundf (x *. m) /. m
 
-(* Asserts that x has fewer than n decimal places. *)
+(* Asserts that x has at most n decimal places. *)
 let assert_max_decimal_places (n: int) (x: float): unit = 
   assert_equal
-    ~msg: (sprintf "Expected fewer than %d decimal places, but found %g." n x)
-    (roundn (n - 1) x)
+    ~msg: (sprintf "Expected at most %d decimal places, but found %g." n x)
+    (roundn n x)
     x
 
-(* Asserts that all floating-point numbers in e have fewer than n decimal places. *)
+(* Asserts that all floating-point numbers in e have at most n decimal places. *)
 let rec assert_max_decimal_places_expr (n: int) (e: expr): unit =
   match e with
   | Z _ -> ()
