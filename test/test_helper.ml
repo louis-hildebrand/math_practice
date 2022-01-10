@@ -37,17 +37,6 @@ let rec max_denom (e: expr): int =
   | Mul es -> List.fold_left (fun acc e -> max acc (max_denom e)) 0 es
   | Div (e1, e2) -> max (max_denom e1) (max_denom e2)
 
-(* Checks whether the given expression involves division by an expression that is identical to 0. *)
-let rec has_div_by_zero (e: expr): bool =
-  match e with
-  | Z _
-  | R _
-  | Var _ -> false
-  | Neg e -> has_div_by_zero e
-  | Add es
-  | Mul es -> List.exists (fun arg -> has_div_by_zero arg) es
-  | Div (e1, e2) -> has_div_by_zero e1 || has_div_by_zero e2 || (try eval e2 [] = 0.0 with UndefinedVariable _ -> false)
-
 (* Computes the greatest common divisor of n and m. *)
 let gcd (n: int) (m: int): int =
   let rec gcd' big small =
@@ -158,16 +147,13 @@ let assert_expr_max_width (expected_max_width: int) (seed: int) (e: expr): unit 
   in
   assert_at_most ~msg: msg ~printer: string_of_int expected_max_width actual_max_width
 
-let assert_no_div_by_zero (seed: int) (e: expr): unit =
-  let msg = sprintf
-    "Found expression with division by zero:\n\
-     - seed: %d\n\
-     - expression: %s"
-    seed (string_of_expr e)
-  in
+let is_finite_number (x: float): bool =
+  x != infinity && x != neg_infinity && x != nan
+
+let assert_finite_number (x: float): unit =
   assert_bool
-    msg
-    (not (has_div_by_zero e))
+    (sprintf "Expected finite numerical value but received %g." x)
+    (is_finite_number x)
 
 let assert_expr_unsimplified (seed: int) (e: expr): unit =
   let msg = sprintf

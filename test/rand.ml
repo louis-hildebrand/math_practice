@@ -63,14 +63,21 @@ let next_fractional_max_denom _ =
 let next_fractional_not_simplified _ =
   List.iter (fun (s, e) -> assert_expr_unsimplified s e) random_exprs
 
-let next_fractional_no_div_by_zero0 _ =
-  List.iter (fun (s, e) -> assert_no_div_by_zero s e) random_exprs
+(* Check that all expressions can be evaluated to a rational number. This should ensure there is no division by zero,
+ * no variables, no non-rational parts, etc.
+ *)
+let next_fractional_eval_rational0 _ =
+  let assert_evaluable (_, e) = let _ = eval_rational e [] in () in
+  List.iter assert_evaluable random_exprs
 
-(* Check for division by 0 in the case where the only allowed constant is 0. *)
-let next_fractional_no_div_by_zero1 _ =
-  let f s = seed s; (s, next_fractional 2 2 2 (new_rational 0 1) (new_rational 1 2) 2) in
-  let random_exprs = List.map f (tabulate 0 100) in
-  List.iter (fun (s, e) -> assert_no_div_by_zero s e) random_exprs
+(* Check that all expressions can be evaluated to a rational number in the case where the only allowed constant is 0.
+ * Same purpose as the previous test, but with particular emphasis on division by zero.
+ *)
+let next_fractional_eval_rational1 _ =
+  let generate_expr s = seed s; next_fractional 2 2 2 (new_rational 0 1) (new_rational 1 2) 2 in
+  let random_exprs = List.map generate_expr (tabulate 0 100) in
+  let assert_evaluable e = let _ = eval_rational e [] in () in
+  List.iter assert_evaluable random_exprs
 
 (* next_fractional: exceptions -------------------------------------------------------------------------------------- *)
 let zero_r = new_rational 0 1
@@ -165,14 +172,19 @@ let next_decimal_max_decimal_places _ =
 let next_decimal_not_simplified _ =
   List.iter (fun (s, e) -> assert_expr_unsimplified s e) random_exprs
 
-let next_decimal_no_div_by_zero0 _ =
-  List.iter (fun (s, e) -> assert_no_div_by_zero s e) random_exprs
+(* Check that all expressions can be evaluated to a finite real number. This should ensure there is no division by zero,
+ * no variables, etc.
+ *)
+let next_decimal_eval0 _ =
+  List.iter (fun (_, e) -> assert_finite_number (eval e [])) random_exprs
 
-(* Check for division by 0 in the case where the only allowed constant is 0. *)
-let next_decimal_no_div_by_zero1 _ =
-  let f s = seed s; (s, next_decimal 2 2 2 0.0 0.1 1) in
-  let random_exprs = List.map f (tabulate 0 100) in
-  List.iter (fun (s, e) -> assert_no_div_by_zero s e) random_exprs
+(* Check that all expressions can be evaluated to a finite real number in the case where the only allowed constant is
+ * 0. Same purpose as the previous test, but with particular emphasis on division by zero.
+ *)
+let next_decimal_eval1 _ =
+  let generate_expr s = seed s; next_decimal 2 2 2 0.0 0.1 1 in
+  let random_exprs = List.map generate_expr (tabulate 0 100) in
+  List.iter (fun e -> assert_finite_number (eval e [])) random_exprs
 
 (* next_decimal: exceptions ----------------------------------------------------------------------------------------- *)
 let next_decimal_exc_min_depth_invalid _ =
@@ -221,8 +233,8 @@ let tests =
     "next_fractional_max_const">:: next_fractional_max_const;
     "next_fractional_max_denom">:: next_fractional_max_denom;
     "next_fractional_not_simplified">:: next_fractional_not_simplified;
-    "next_fractional_no_div_by_zero0">:: next_fractional_no_div_by_zero0;
-    "next_fractional_no_div_by_zero1">:: next_fractional_no_div_by_zero1;
+    "next_fractional_eval_rational0">:: next_fractional_eval_rational0;
+    "next_fractional_eval_rational1">:: next_fractional_eval_rational1;
     "next_fractional_exc_min_depth_invalid">:: next_fractional_exc_min_depth_invalid;
     "next_fractional_exc_max_depth_invalid">:: next_fractional_exc_max_depth_invalid;
     "next_fractional_exc_min_depth_greater_than_max_depth">:: next_fractional_exc_min_depth_greater_than_max_depth;
@@ -238,8 +250,8 @@ let tests =
     "next_decimal_max_const">:: next_decimal_max_const;
     "next_decimal_max_decimal_places">:: next_decimal_max_decimal_places;
     "next_decimal_not_simplified">:: next_decimal_not_simplified;
-    "next_decimal_no_div_by_zero0">:: next_decimal_no_div_by_zero0;
-    "next_decimal_no_div_by_zero1">:: next_decimal_no_div_by_zero1;
+    "next_decimal_eval0">:: next_decimal_eval0;
+    "next_decimal_eval1">:: next_decimal_eval1;
     "next_decimal_exc_min_depth_invalid">:: next_decimal_exc_min_depth_invalid;
     "next_decimal_exc_max_depth_invalid">:: next_decimal_exc_max_depth_invalid;
     "next_decimal_exc_min_depth_greater_than_max_depth">:: next_decimal_exc_min_depth_greater_than_max_depth;
