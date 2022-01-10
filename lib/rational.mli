@@ -12,6 +12,12 @@ val new_rational: int -> int -> rational
 (** Converts the given rational number to a string. *)
 val string_of_rational: rational -> string
 
+(** Converts the given rational number to the equivalent floating-point number. *)
+val float_of_rational: rational -> float
+
+(** Converts the given rational number to an expression. *)
+val expr_of_rational: rational -> expr
+
 (** Computes the sum of rational numbers. *)
 val (+:): rational -> rational -> rational
 

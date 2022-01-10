@@ -36,6 +36,13 @@ let new_rational (numerator: int) (denominator: int): rational =
     let (n', d') = reduce_fraction (numerator, denominator) in
     (n', d')
 
+let float_of_rational ((n, d): rational): float =
+  (float_of_int n) /. (float_of_int d)
+
+let expr_of_rational ((n, d): rational): expr =
+  if d = 1 then Z n
+  else Div (Z n, Z d)
+
 (* If overflow ever becomes a problem for the operators, try finding the LCM of the denominators instead. *)
 
 let (+:) ((n1, d1): rational) ((n2, d2): rational): rational =
