@@ -56,7 +56,7 @@ let set_subcommand (arg: string): unit =
   match arg with
   | "fraction" -> subcommand := Some "fraction"
   | "decimal" -> subcommand := Some "decimal"
-  | _ -> print_error (sprintf "Invalid subcommand %s" arg)
+  | _ -> print_error (sprintf "Invalid subcommand '%s'" arg)
 
 let anon_fun (arg: string): unit =
   match !subcommand with
