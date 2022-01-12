@@ -1,7 +1,7 @@
 Standard
   $ math_practice decimal -s 849283533 -a
   1. -(19.45 * (-56.05)) = 1090.1725
-  2. 87.73 - 48.73 = 39.
+  2. 87.73 - 48.73 = 39
   3. (-62.74) * 35.21 = -2209.0754
   4. -(77.78 - 73.07) = -4.71
   5. -97.01 + 21.8 = -75.21
@@ -14,7 +14,7 @@ Standard
 
   $ math_practice decimal --seed 849283533 --answers
   1. -(19.45 * (-56.05)) = 1090.1725
-  2. 87.73 - 48.73 = 39.
+  2. 87.73 - 48.73 = 39
   3. (-62.74) * 35.21 = -2209.0754
   4. -(77.78 - 73.07) = -4.71
   5. -97.01 + 21.8 = -75.21
@@ -100,18 +100,10 @@ Quiet
 --> exit 0
 
 All options
-  $ math_practice decimal -n 5 -q -s 618378140 -a
+  $ math_practice decimal -n 1 -q -s 618378140 -a
   62.32
-  920.6268
-  44.31
-  93.61
-  -202.4563
 --> exit 0
 
-  $ math_practice decimal --num-questions 5 --quiet --seed 618378140 --answers
+  $ math_practice decimal --num-questions 1 --quiet --seed 618378140 --answers
   62.32
-  920.6268
-  44.31
-  93.61
-  -202.4563
 --> exit 0

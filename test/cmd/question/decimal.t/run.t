@@ -104,18 +104,10 @@ Quiet
 --> exit 0
 
 All options
-  $ math_practice decimal -n 5 -q -s 618378140
+  $ math_practice decimal -n 1 -q -s 618378140
   19.64 + 42.68
-  (-36.62) * (-25.14)
-  5.34 + 38.97
-  -(-25.28 - 68.33)
-  (-5.87) * 34.49
 --> exit 0
 
-  $ math_practice decimal --num-questions 5 --quiet --seed 618378140
+  $ math_practice decimal --num-questions 1 --quiet --seed 618378140
   19.64 + 42.68
-  (-36.62) * (-25.14)
-  5.34 + 38.97
-  -(-25.28 - 68.33)
-  (-5.87) * 34.49
 --> exit 0

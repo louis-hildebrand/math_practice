@@ -103,6 +103,7 @@ let ask_decimal (quiet: bool) (num_questions: int) (sd: int): unit =
   ask_questions quiet num_questions sd generate_decimal_questions
 
 let answer_decimal (quiet: bool) (num_questions: int) (sd: int): unit =
+  let string_of_float = sprintf "%.12g" in
   let evaluator e = string_of_float (eval e []) in
   answer_questions quiet num_questions sd generate_decimal_questions evaluator
 
