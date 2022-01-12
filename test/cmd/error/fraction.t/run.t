@@ -39,7 +39,7 @@ Missing seed when asking for answers
 
 Number of questions invalid
   $ math_practice fraction -n 0
-  Invalid number of questions 0.
+  Invalid number of questions 0. The number of questions must be at least 1.
   Usage: math_practice [<options>] <subcommand> [<subcommand-options>]
          Valid subcommands:
          - fraction  Practice order of operations and basic arithmetic with fractions
@@ -58,7 +58,7 @@ Number of questions invalid
   [1]
 
   $ math_practice fraction --num-questions 0
-  Invalid number of questions 0.
+  Invalid number of questions 0. The number of questions must be at least 1.
   Usage: math_practice [<options>] <subcommand> [<subcommand-options>]
          Valid subcommands:
          - fraction  Practice order of operations and basic arithmetic with fractions
@@ -77,7 +77,7 @@ Number of questions invalid
   [1]
 
   $ math_practice fraction -n -1
-  Invalid number of questions -1.
+  Invalid number of questions -1. The number of questions must be at least 1.
   Usage: math_practice [<options>] <subcommand> [<subcommand-options>]
          Valid subcommands:
          - fraction  Practice order of operations and basic arithmetic with fractions
@@ -96,7 +96,7 @@ Number of questions invalid
   [1]
 
   $ math_practice fraction --num-questions -1
-  Invalid number of questions -1.
+  Invalid number of questions -1. The number of questions must be at least 1.
   Usage: math_practice [<options>] <subcommand> [<subcommand-options>]
          Valid subcommands:
          - fraction  Practice order of operations and basic arithmetic with fractions
