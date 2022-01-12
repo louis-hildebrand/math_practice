@@ -1,3 +1,5 @@
+(** {!Rand} provides functions for generating random expressions. *)
+
 open Rational
 
 (** Initializes the random number generator. *)

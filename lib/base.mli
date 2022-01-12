@@ -1,3 +1,5 @@
+(** {!Base} defines the expression type and provides a few simple functions for handling them. *)
+
 (** Math expression. *)
 type expr =
   | Z of int           (** Integer *)
