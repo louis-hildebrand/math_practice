@@ -1,4 +1,5 @@
 (lang dune 2.9)
+(cram enable)
 
 ; Don't forget to regenerate opam files by running `dune build`
 (generate_opam_files true)
