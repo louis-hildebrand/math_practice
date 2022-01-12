@@ -104,18 +104,10 @@ Quiet
 --> exit 0
 
 All options
-  $ math_practice fraction -n 5 -q -s 618378140
+  $ math_practice fraction -n 1 -q -s 618378140
   169 / 2 * (-117) / 5
-  231 / 5 / 88
-  -((-48) * (-107) / 6)
-  (-403) / 10 / (317 / 4)
-  141 / 5 * 17
 --> exit 0
 
-  $ math_practice fraction --num-questions 5 --quiet --seed 618378140
+  $ math_practice fraction --num-questions 1 --quiet --seed 618378140
   169 / 2 * (-117) / 5
-  231 / 5 / 88
-  -((-48) * (-107) / 6)
-  (-403) / 10 / (317 / 4)
-  141 / 5 * 17
 --> exit 0

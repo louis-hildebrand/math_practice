@@ -100,18 +100,10 @@ Quiet
 --> exit 0
 
 All options
-  $ math_practice fraction -n 5 -q -s 618378140 -a
+  $ math_practice fraction -n 1 -q -s 618378140 -a
   -19773/10
-  21/40
-  -856
-  -806/1585
-  2397/5
 --> exit 0
 
-  $ math_practice fraction --num-questions 5 --quiet --seed 618378140 --answers
+  $ math_practice fraction --num-questions 1 --quiet --seed 618378140 --answers
   -19773/10
-  21/40
-  -856
-  -806/1585
-  2397/5
 --> exit 0
