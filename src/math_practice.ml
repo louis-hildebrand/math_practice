@@ -119,7 +119,8 @@ let subcmd_decimal (quiet: bool) (num_questions: int) (sd: int) (show_answers: b
 let invoke_subcommand (): unit =
   let quiet = !quiet in
   let num_questions = !num_questions in
-  if num_questions < 0 then print_error (sprintf "Invalid number of questions %d" num_questions);
+  if num_questions <= 0 then
+    print_error (sprintf "Invalid number of questions %d. The number of questions must be at least 1" num_questions);
   let show_answers = !show_answers in
   let seed = match !user_seed, show_answers with
     (* 1073741823 = 2^30 - 1, the maximum allowable bound for Random.int *)
