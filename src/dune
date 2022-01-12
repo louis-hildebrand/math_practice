@@ -1,4 +1,3 @@
 (executable
- (public_name math_practice)
  (name math_practice)
  (libraries dobson))
