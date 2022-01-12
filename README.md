@@ -7,7 +7,7 @@
 ## Manual installation
 #### Prerequisites
 - opam, the OCaml package manager: https://opam.ocaml.org/doc/Install.html
-    - `math_practice` requires at least OCaml 4.05.0. Check your version using `opam switch`. If your OCaml compiler is out of date, you can install a newer one using `opam switch create <version>` (e.g. `opam switch create 4.05.0`).
+    - `math_practice` is developed using OCaml 4.05.0 and is not guaranteed to work with older versions. Check your version using `opam switch`. If your OCaml compiler is out of date, you can install a newer one using `opam switch create <version>` (e.g. `opam switch create 4.05.0`).
 - dune, the OCaml build system: https://dune.build/install
     - It is easiest to install dune using opam.
 
