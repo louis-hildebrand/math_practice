@@ -1,3 +1,5 @@
+(** {!Rational} defines rational numbers and related functions. *)
+
 open Base
 
 (** Rational number (numerator and denominator). *)
