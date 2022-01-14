@@ -1,12 +1,12 @@
-open Dobson.Base
 open Dobson.Rational
 open OUnit2
+open Printf
 open Test_helper
 
 (* new_rational: exceptions ----------------------------------------------------------------------------------------- *)
 let new_rational_exc_div_by_zero _ =
   assert_raises
-    (Undefined "Attempt to initialize rational number with denominator of zero (0/0).")
+    Division_by_zero
     (fun () -> new_rational 0 0)
 
 (* string_of_rational ----------------------------------------------------------------------------------------------- *)
@@ -45,6 +45,13 @@ let float_of_rational0 _ =
   assert_equal_float
     2.5
     (float_of_rational (new_rational 10 4))
+
+(* split ------------------------------------------------------------------------------------------------------------ *)
+let split0 _ =
+  assert_equal
+    ~printer: (fun (n, d) -> sprintf "(%d, %d)" n d)
+    (5, 2)
+    (split (new_rational 10 4))
 
 (* add -------------------------------------------------------------------------------------------------------------- *)
 let add_positive _ =
@@ -235,6 +242,7 @@ let tests =
     "string_of_rational_frac_negative_positive">:: string_of_rational_frac_negative_positive;
     "string_of_rational_frac_negative_negative">:: string_of_rational_frac_negative_negative;
     "float_of_rational0">:: float_of_rational0;
+    "split0">:: split0;
     "add_positive">:: add_positive;
     "add_negative">:: add_negative;
     "subtract_positive">:: subtract_positive;
