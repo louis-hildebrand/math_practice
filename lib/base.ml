@@ -17,6 +17,7 @@ type operation =
   | OAdd
   | OMul
   | ODiv
+  | OPow
 
 type expr_context = operation * int (* Parent operation and position (starting at 0) *)
 
@@ -45,6 +46,7 @@ let rec flatten (e: expr): expr =
       Add (List.fold_right (fun e acc -> (collect_args e) @ acc) es [])
   | Mul es -> Mul (List.map flatten es)
   | Div (e1, e2) -> Div (flatten e1, flatten e2)
+  | Pow (e1, e2) -> Pow (flatten e1, flatten e2)
 
 (* Remove the trailing period (e.g. show 3.0 as 3 instead of 3.) *)
 let string_of_float = sprintf "%.12g"
@@ -54,12 +56,12 @@ let string_of_expr (e: expr): string =
   let rec string_of_expr' (ctxt: expr_context option) (e: expr): string =
     match e with
     | Z (n) ->
-        if n < 0 && (ctxt != None && ctxt != Some (OAdd, 0)) then
+        if n < 0 && (ctxt != None && ctxt != Some (OAdd, 0) && ctxt != Some (OPow, 1)) then
           "(" ^ (string_of_int n) ^ ")"
         else
           string_of_int n
     | R x ->
-        if x < 0.0 && (ctxt != None && ctxt != Some (OAdd, 0)) then
+        if x < 0.0 && (ctxt != None && ctxt != Some (OAdd, 0) && ctxt != Some (OPow, 1)) then
           "(" ^ (string_of_float x) ^ ")"
         else
           string_of_float x
@@ -72,11 +74,13 @@ let string_of_expr (e: expr): string =
         let final = "-" ^ (string_of_expr' (Some (ONeg, 0)) e) in
         (match ctxt with
         | None
-        | Some (OAdd, 0) -> final
+        | Some (OAdd, 0)
+        | Some (OPow, 1) -> final
         | Some (ONeg, _)
         | Some (OAdd, _)
         | Some (OMul, _)
-        | Some (ODiv, _) -> "(" ^ final ^ ")")
+        | Some (ODiv, _) 
+        | Some (OPow, _) -> "(" ^ final ^ ")")
     | Add (e1::es) when List.length es >= 1 ->
         let append (i, acc) e =
           let acc' = match e with
@@ -94,7 +98,8 @@ let string_of_expr (e: expr): string =
         | Some (OAdd, _) (* Since the expression tree is flattened ahead of time, this must be a subtraction *)
         | Some (ONeg, _)
         | Some (OMul, _)
-        | Some (ODiv, _) -> "(" ^ final ^ ")")
+        | Some (ODiv, _)
+        | Some (OPow, _) -> "(" ^ final ^ ")")
     | Add _ ->
         raise (InvalidExpr "Wrong number of arguments for operation Add.")
     | Mul (e1::es) when List.length es >= 1 ->
@@ -107,7 +112,8 @@ let string_of_expr (e: expr): string =
         | Some (OMul, _)
         | Some (ODiv, 0) -> final
         | Some (ONeg, _)
-        | Some (ODiv, _) -> "(" ^ final ^ ")")
+        | Some (ODiv, _)
+        | Some (OPow, _) -> "(" ^ final ^ ")")
     | Mul _ ->
         raise (InvalidExpr "Wrong number of arguments for operation Mul.")
     | Div (e1, e2) ->
@@ -118,7 +124,18 @@ let string_of_expr (e: expr): string =
         | Some (OMul, _)
         | Some (ODiv, 0) -> final
         | Some (ONeg, _)
-        | Some (ODiv, _) -> "(" ^ final ^ ")")
+        | Some (ODiv, _)
+        | Some (OPow, _) -> "(" ^ final ^ ")")
+    | Pow (e1, e2) ->
+        let final = (string_of_expr' (Some (OPow, 0)) e1) ^ "^" ^ (string_of_expr' (Some (OPow, 1)) e2) in
+        (match ctxt with
+        | None
+        | Some (ONeg, _)
+        | Some (OAdd, _)
+        | Some (OMul, _)
+        | Some (ODiv, _)
+        | Some (OPow, 1) -> final
+        | Some (OPow, _) -> "(" ^ final ^ ")")
   in
   let e' = flatten e in
   string_of_expr' None e'
