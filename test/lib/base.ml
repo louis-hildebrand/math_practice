@@ -367,7 +367,7 @@ let eval_exc_div_by_zero1 _ =
 let eval_exc_even_root_negative _ =
   assert_raises
     Undefined
-    (fun () -> eval (Pow (Var "x", Div (Z 1, Var "y"))) [("x", -1.5); ("k", 4.0)])
+    (fun () -> eval (Pow (Var "x", Div (Z 1, Var "k"))) [("x", -1.5); ("k", 4.0)])
 
 (* eval_rational: values -------------------------------------------------------------------------------------------- *)
 let eval_rational_int _ =
