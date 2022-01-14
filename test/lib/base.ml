@@ -154,7 +154,7 @@ let string_of_expr_pow0 _ =
 let string_of_expr_pow1 _ =
   assert_equal_string
     "(-1)^(n + 1)"
-    (string_of_expr (Pow (Z (-1), Add [Var "x"; Z 1])))
+    (string_of_expr (Pow (Z (-1), Add [Var "n"; Z 1])))
 
 let string_of_expr_neg_pow _ =
   assert_equal_string
