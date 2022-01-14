@@ -11,6 +11,7 @@ type expr =
   | Add of expr list   (** e1 + e2 + e3 + ... *)
   | Mul of expr list   (** e1 * e2 * e3 * ... *)
   | Div of expr * expr (** e1 / e2 *)
+  | Pow of expr * expr (** e1^e2 *)
 
 (** Expression is badly formed. *)
 exception InvalidExpr of string
