@@ -17,7 +17,7 @@ type expr =
 exception InvalidExpr of string
 
 (** Expression involves an invalid operation (e.g. division by zero). *)
-exception Undefined of string
+exception Undefined
 
 (** Attempt to evaluate an expression when some variables were not given a value. *)
 exception UndefinedVariable of string

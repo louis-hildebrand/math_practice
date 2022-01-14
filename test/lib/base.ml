@@ -318,11 +318,25 @@ let eval_div_vars _ =
     6.0
     (eval (Div (Var "y", Div (Z 1, Var "x"))) [("x", 2.0); ("y", 3.0)])
 
+let eval_pow_novars _ =
+  assert_equal_float
+    (0.5 ** 1.5)
+    (eval (Pow (R 0.5, R 1.5)) [])
+
+let eval_pow_vars _ =
+  assert_equal_float
+    (2.0 ** 1.5)
+    (eval (Pow (Add [Var "x"; Z 1], Mul [Z 3; Var "k"])) [("x", 1.0); ("k", 0.5)])
+
+let eval_pow_zero_zero _ =
+  assert_equal_float
+    1.0
+    (eval (Pow (Z 0, R 0.0)) [])
+
 (* eval: exceptions ------------------------------------------------------------------------------------------------- *)
-let eval_exc_div_by_zero _ =
+let eval_exc_div_by_zero0 _ =
   assert_raises
-    (Undefined (sprintf "Attempt to divide by zero in expression %s."
-      (string_of_expr (Div (Z 1, Add [Z 1; Neg (R 0.75); R (-0.25)])))))
+    Undefined
     (fun () -> eval (Div (Z 1, Add [Z 1; Neg (R 0.75); R (-0.25)])) [])
 
 let eval_exc_add_num_args _ =
@@ -344,6 +358,16 @@ let eval_exc_unknown_var1 _ =
   assert_raises
     (MultipleDefinitions "Multiple definitions provided for variable 'y' (e.g. 2.123, 2.123).")
     (fun () -> eval (Add [Var "x"; Z 1; Var "y"]) [("x", 1.0); ("y", 2.123); ("y", 2.123)])
+
+let eval_exc_div_by_zero1 _ =
+  assert_raises
+    Undefined
+    (fun () -> eval (Pow (Var "x", Add [Z 1; Z (-3)])) [("x", 0.0)])
+
+let eval_exc_even_root_negative _ =
+  assert_raises
+    Undefined
+    (fun () -> eval (Pow (Var "x", Div (Z 1, Var "y"))) [("x", -1.5); ("k", 4.0)])
 
 (* eval_rational: values -------------------------------------------------------------------------------------------- *)
 let eval_rational_int _ =
@@ -394,8 +418,7 @@ let eval_rational_mul_vars _ =
 (* eval_rational: exceptions ---------------------------------------------------------------------------------------- *)
 let eval_rational_exc_div_by_zero _ =
   assert_raises
-    (Undefined (sprintf "Attempt to divide by zero in expression %s."
-      (string_of_expr (Div (Z 1, Add [Z 1; Neg (Z 1)])))))
+    Undefined
     (fun () -> eval_rational (Div (Z 1, Add [Z 1; Neg (Z 1)])) [])
 
 let eval_rational_exc_add_num_args _ =
@@ -485,11 +508,16 @@ let tests =
     "eval_mul_vars">:: eval_mul_vars;
     "eval_div_novars">:: eval_div_novars;
     "eval_div_vars">:: eval_div_vars;
-    "eval_exc_div_by_zero">:: eval_exc_div_by_zero;
+    "eval_pow_novars">:: eval_pow_vars;
+    "eval_pow_vars">:: eval_pow_vars;
+    "eval_pow_zero_zero">:: eval_pow_zero_zero;
+    "eval_exc_div_by_zero0">:: eval_exc_div_by_zero0;
     "eval_exc_add_num_args">:: eval_exc_add_num_args;
     "eval_exc_mul_num_args">:: eval_exc_mul_num_args;
     "eval_exc_unknown_var0">:: eval_exc_unknown_var0;
     "eval_exc_unknown_var1">:: eval_exc_unknown_var1;
+    "eval_exc_div_by_zero1">:: eval_exc_div_by_zero1;
+    "eval_exc_even_root_negative">:: eval_exc_even_root_negative;
     "eval_rational_int">:: eval_rational_int;
     "eval_rational_var">:: eval_rational_var;
     "eval_rational_neg">:: eval_rational_neg;

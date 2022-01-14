@@ -22,7 +22,7 @@ type expr_context = operation * int (* Parent operation and position (starting a
 
 (* Exceptions ------------------------------------------------------------------------------------------------------- *)
 exception InvalidExpr of string
-exception Undefined of string
+exception Undefined
 exception UndefinedVariable of string
 exception MultipleDefinitions of string
 exception NonRational of string
@@ -141,7 +141,7 @@ let rec eval (e: expr) (vals: (string * float) list): float =
   | Mul _ -> raise (InvalidExpr "Wrong number of arguments for operation Mul.")
   | Div (e1, e2) ->
       let denom = eval e2 vals in
-      if denom = 0.0 then raise (Undefined (sprintf "Attempt to divide by zero in expression %s." (string_of_expr e)))
+      if denom = 0.0 then raise Undefined
       else let numer = eval e1 vals in
       numer /. denom
 
@@ -167,7 +167,5 @@ let rec eval_rational (e: expr) (vals: (string * rational) list): rational =
   | Div (e1, e2) ->
       let n = eval_rational e1 vals in
       let d = eval_rational e2 vals in
-      if d =: (new_rational 0 1) then
-        raise (Undefined (sprintf "Attempt to divide by zero in expression %s." (string_of_expr e)))
-      else
-        n /: d
+      if d =: (new_rational 0 1) then raise Undefined
+      else n /: d
