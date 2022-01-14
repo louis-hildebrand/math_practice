@@ -148,7 +148,8 @@ let assert_expr_max_width (expected_max_width: int) (seed: int) (e: expr): unit 
   assert_at_most ~msg: msg ~printer: string_of_int expected_max_width actual_max_width
 
 let is_finite_number (x: float): bool =
-  x != infinity && x != neg_infinity && x != nan
+  let fpc = classify_float x in
+  fpc <> FP_infinite && fpc <> FP_nan
 
 let assert_finite_number (x: float): unit =
   assert_bool
