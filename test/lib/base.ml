@@ -415,8 +415,33 @@ let eval_rational_mul_vars _ =
     (new_rational 1 1)
     (eval_rational (Mul [Var "x"; Z 3; Neg (Var "y")]) [("x", new_rational 1 2); ("y", new_rational (-2) 3)])
 
+let eval_rational_pow_novars _ =
+  assert_equal_rational
+    (new_rational 27 1)
+    (eval_rational (Pow (Z 9, Div (Z 3, Z 2))) [])
+
+let eval_rational_pow_vars _ =
+  assert_equal_rational
+    (new_rational 4 9)
+    (eval_rational (Pow (Var "b", Var "x")) [("b", new_rational 8 27); ("x", new_rational 2 3)])
+
+let eval_rational_pow_neg_exponent _ =
+  assert_equal_rational
+    (new_rational 1 100)
+    (eval_rational (Pow (Z 10, Z (-2))) [])
+
+let eval_rational_pow_neg_base _ =
+  assert_equal_rational
+    (new_rational (-3) 1)
+    (eval_rational (Pow (Z (-8), Div (Z 1, Z 3))) [])
+
+let eval_rational_pow_zero_zero _ =
+  assert_equal_rational
+    (new_rational 1 1)
+    (eval_rational (Pow (Add [Z 1; Z (-1)], Div (Z 0, Z 3))) [])
+
 (* eval_rational: exceptions ---------------------------------------------------------------------------------------- *)
-let eval_rational_exc_div_by_zero _ =
+let eval_rational_exc_div_by_zero0 _ =
   assert_raises
     Undefined
     (fun () -> eval_rational (Div (Z 1, Add [Z 1; Neg (Z 1)])) [])
@@ -446,6 +471,21 @@ let eval_rational_exc_real_num _ =
   assert_raises
     (NonRational "Floating-point value 2.5 is not an integer or a fraction.")
     (fun () -> eval_rational (Add [Div (Z 5, Z 2); R 2.5]) [])
+
+let eval_rational_exc_div_by_zero1 _ =
+  assert_raises
+    Undefined
+    (fun () -> eval_rational (Pow (Var "x", Add [Z 1; Z (-3)])) [("x", new_rational 0 1)])
+
+let eval_rational_exc_pow_neg_base _ =
+  assert_raises
+    Undefined
+    (fun () -> eval_rational (Pow (Div (Z (-1), Z 2), Div (Z 1, Var "x"))) [("x", new_rational 4 1)])
+
+let eval_rational_exc_pow_irrational _ =
+  assert_raises
+    (NonRational "Cannot evaluate 7^(3/2) to a rational value.")
+    (fun () -> eval_rational (Pow (Var "x", Div (Z 3, Z 2))) [("x", new_rational 7 1)])
 
 (* List and run tests ----------------------------------------------------------------------------------------------- *)
 let tests =
@@ -527,12 +567,20 @@ let tests =
     "eval_rational_add_vars">:: eval_rational_add_vars;
     "eval_rational_mul_novars">:: eval_rational_mul_novars;
     "eval_rational_mul_vars">:: eval_rational_mul_vars;
-    "eval_rational_exc_div_by_zero">:: eval_rational_exc_div_by_zero;
+    "eval_rational_pow_novars">:: eval_rational_pow_novars;
+    "eval_rational_pow_vars">:: eval_rational_pow_vars;
+    "eval_rational_pow_neg_exponent">:: eval_rational_pow_neg_exponent;
+    "eval_rational_pow_neg_base">:: eval_rational_pow_neg_base;
+    "eval_rational_pow_zero_zero">:: eval_rational_pow_zero_zero;
+    "eval_rational_exc_div_by_zero0">:: eval_rational_exc_div_by_zero0;
     "eval_rational_exc_add_num_args">:: eval_rational_exc_add_num_args;
     "eval_rational_exc_mul_num_args">:: eval_rational_exc_mul_num_args;
     "eval_rational_exc_no_def">:: eval_rational_exc_no_def;
     "eval_rational_exc_multiple_defs">:: eval_rational_exc_multiple_defs;
     "eval_rational_exc_real_num">:: eval_rational_exc_real_num;
+    "eval_rational_exc_div_by_zero1">:: eval_rational_exc_div_by_zero1;
+    "eval_rational_exc_pow_neg_base">:: eval_rational_exc_pow_neg_base;
+    "eval_rational_exc_pow_irrational">:: eval_rational_exc_pow_irrational;
   ]
 
 let () =
