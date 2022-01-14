@@ -1,4 +1,5 @@
 open Printf
+open Rational
 
 (* Types ------------------------------------------------------------------------------------------------------------ *)
 type expr =
@@ -141,3 +142,30 @@ let rec eval (e: expr) (vals: (string * float) list): float =
       if denom = 0.0 then raise (Undefined (sprintf "Attempt to divide by zero in expression %s." (string_of_expr e)))
       else let numer = eval e1 vals in
       numer /. denom
+
+let rec eval_rational (e: expr) (vals: (string * rational) list): rational =
+  match e with
+  | Z n -> new_rational n 1
+  | R x -> raise (NonRational (sprintf "Floating-point value %g is not an integer or a fraction." x))
+  | Var name -> 
+      let vs = List.map (fun (_, v) -> v) (List.filter (fun (n, _) -> n = name) vals) in
+      (match vs with
+      | [] -> raise (UndefinedVariable (sprintf "No definition provided for variable '%s'." name))
+      | [v] -> v
+      | v1::v2::_ ->
+          raise (MultipleDefinitions (sprintf "Multiple definitions provided for variable '%s' (e.g. %s, %s)."
+            name (string_of_rational v1) (string_of_rational v2))))
+  | Neg e' -> ~-:(eval_rational e' vals)
+  | Add es when List.length es >= 2 ->
+      List.fold_left (fun acc e -> acc +: (eval_rational e vals)) (new_rational 0 1) es
+  | Add _ -> raise (InvalidExpr "Wrong number of arguments for operation Add.")
+  | Mul es when List.length es >= 2 ->
+      List.fold_left (fun acc e -> acc *: (eval_rational e vals)) (new_rational 1 1) es
+  | Mul _ -> raise (InvalidExpr "Wrong number of arguments for operation Mul.")
+  | Div (e1, e2) ->
+      let n = eval_rational e1 vals in
+      let d = eval_rational e2 vals in
+      if d =: (new_rational 0 1) then
+        raise (Undefined (sprintf "Attempt to divide by zero in expression %s." (string_of_expr e)))
+      else
+        n /: d

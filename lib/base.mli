@@ -1,5 +1,7 @@
 (** {!Base} defines the expression type and provides a few simple functions for handling them. *)
 
+open Rational
+
 (** Math expression. *)
 type expr =
   | Z of int           (** Integer *)
@@ -28,3 +30,6 @@ val string_of_expr: expr -> string
 
 (** Evaluates the given expression. *)
 val eval: expr -> (string * float) list -> float
+
+(** Evaluates an expression involving only rational numbers. *)
+val eval_rational: expr -> (string * rational) list -> rational
