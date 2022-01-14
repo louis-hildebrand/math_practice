@@ -48,6 +48,10 @@ let rec flatten (e: expr): expr =
   | Div (e1, e2) -> Div (flatten e1, flatten e2)
   | Pow (e1, e2) -> Pow (flatten e1, flatten e2)
 
+let is_finite_num (x: float): bool =
+  let fpc = classify_float x in
+  fpc <> FP_infinite && fpc <> FP_nan
+
 (* Remove the trailing period (e.g. show 3.0 as 3 instead of 3.) *)
 let string_of_float = sprintf "%.12g"
 
@@ -161,6 +165,13 @@ let rec eval (e: expr) (vals: (string * float) list): float =
       if denom = 0.0 then raise Undefined
       else let numer = eval e1 vals in
       numer /. denom
+  | Pow (e1, e2) ->
+      let base = eval e1 vals in
+      let power = eval e2 vals in
+      let result = base ** power in
+      (* Handle division by zero, even roots of negative numbers, etc. *)
+      if is_finite_num result then result
+      else raise Undefined
 
 let rec eval_rational (e: expr) (vals: (string * rational) list): rational =
   match e with
