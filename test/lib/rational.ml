@@ -1,4 +1,3 @@
-open Dobson.Base
 open Dobson.Rational
 open OUnit2
 open Printf
@@ -7,7 +6,7 @@ open Test_helper
 (* new_rational: exceptions ----------------------------------------------------------------------------------------- *)
 let new_rational_exc_div_by_zero _ =
   assert_raises
-    (Undefined "Attempt to initialize rational number with denominator of zero (0/0).")
+    Division_by_zero
     (fun () -> new_rational 0 0)
 
 (* string_of_rational ----------------------------------------------------------------------------------------------- *)
@@ -47,16 +46,12 @@ let float_of_rational0 _ =
     2.5
     (float_of_rational (new_rational 10 4))
 
-(* expr_of_rational ------------------------------------------------------------------------------------------------- *)
-let expr_of_rational_int _ =
-  assert_equal_expr
-    (Z 2)
-    (expr_of_rational (new_rational 24 12))
-
-let expr_of_rational_fraction _ =
-  assert_equal_expr
-    (Div (Z 1, Z 3))
-    (expr_of_rational (new_rational 12 36))
+(* split ------------------------------------------------------------------------------------------------------------ *)
+let split0 _ =
+  assert_equal
+    ~printer: (fun (n, d) -> sprintf "(%d, %d)" n d)
+    (5, 2)
+    (split (new_rational 10 4))
 
 (* add -------------------------------------------------------------------------------------------------------------- *)
 let add_positive _ =
@@ -236,85 +231,6 @@ let geq_equal _ =
     "Expected 3/6 >= 5/10 to be true but received false."
     (new_rational 3 6 >=: new_rational 5 10)
 
-(* eval_rational: values -------------------------------------------------------------------------------------------- *)
-let eval_rational_int _ =
-  assert_equal_rational
-    (new_rational 2 1)
-    (eval_rational (Z 2) [])
-
-let eval_rational_var _ =
-  assert_equal_rational
-    (new_rational 1 2)
-    (eval_rational (Var "x") [("x", new_rational 2 4)])
-
-let eval_rational_neg _ =
-  assert_equal_rational
-    (new_rational (-1) 1)
-    (eval_rational (Neg (Z 1)) [])
-
-let eval_rational_div_novars _ =
-  assert_equal_rational
-    (new_rational 1 3)
-    (eval_rational (Div (Z 2, Z 6)) [])
-
-let eval_rational_div_vars _ =
-  assert_equal_rational
-    (new_rational 5 2)
-    (eval_rational (Div (Neg (Var "x"), Neg (Var "y"))) [("x", new_rational 1 3); ("y", new_rational 2 15)])
-
-let eval_rational_add_novars _ =
-  assert_equal_rational
-    (new_rational 4 5)
-    (eval_rational (Add [Div (Z 6, Z 10); Div (Z 3, Z 10); Neg (Div (Z 1, Z 10))]) [])
-
-let eval_rational_add_vars _ =
-  assert_equal_rational
-    (new_rational 3 2)
-    (eval_rational (Add [Div (Z 1, Z 4); Var "x"; Var "y"]) [("x", new_rational 1 4); ("y", new_rational 1 1)])
-
-let eval_rational_mul_novars _ =
-  assert_equal_rational
-    (new_rational (-3) 5)
-    (eval_rational (Mul [Z 2; Div (Z (-1), Z 4); Div (Z 6, Z 5)]) [])
-
-let eval_rational_mul_vars _ =
-  assert_equal_rational
-    (new_rational 1 1)
-    (eval_rational (Mul [Var "x"; Z 3; Neg (Var "y")]) [("x", new_rational 1 2); ("y", new_rational (-2) 3)])
-
-(* eval_rational: exceptions ---------------------------------------------------------------------------------------- *)
-let eval_rational_exc_div_by_zero _ =
-  assert_raises
-    (Undefined (sprintf "Attempt to divide by zero in expression %s."
-      (string_of_expr (Div (Z 1, Add [Z 1; Neg (Z 1)])))))
-    (fun () -> eval_rational (Div (Z 1, Add [Z 1; Neg (Z 1)])) [])
-
-let eval_rational_exc_add_num_args _ =
-  assert_raises
-    (InvalidExpr "Wrong number of arguments for operation Add.")
-    (fun () -> eval_rational (Add [Z 1]) [])
-
-let eval_rational_exc_mul_num_args _ =
-  assert_raises
-    (InvalidExpr "Wrong number of arguments for operation Mul.")
-    (fun () -> eval_rational (Mul [Z 1]) [])
-
-let eval_rational_exc_no_def _ =
-  assert_raises
-    (UndefinedVariable "No definition provided for variable 'y'.")
-    (fun () -> eval_rational (Add [Var "x"; Z 1; Var "y"]) [("x", new_rational 1 1)])
-
-let eval_rational_exc_multiple_defs _ =
-  assert_raises
-    (MultipleDefinitions "Multiple definitions provided for variable 'y' (e.g. 5/2, 5/2).")
-    (fun () -> eval_rational (Add [Var "x"; Z 1; Var "y"]) 
-      [("x", new_rational 1 1); ("y", new_rational 5 2); ("y", new_rational 5 2)])
-
-let eval_rational_exc_real_num _ =
-  assert_raises
-    (NonRational "Floating-point value 2.5 is not an integer or a fraction.")
-    (fun () -> eval_rational (Add [Div (Z 5, Z 2); R 2.5]) [])
-
 (* List and run tests ----------------------------------------------------------------------------------------------- *)
 let tests =
   "rational_tests">::: [
@@ -326,8 +242,7 @@ let tests =
     "string_of_rational_frac_negative_positive">:: string_of_rational_frac_negative_positive;
     "string_of_rational_frac_negative_negative">:: string_of_rational_frac_negative_negative;
     "float_of_rational0">:: float_of_rational0;
-    "expr_of_rational_int">:: expr_of_rational_int;
-    "expr_of_rational_fraction">:: expr_of_rational_fraction;
+    "split0">:: split0;
     "add_positive">:: add_positive;
     "add_negative">:: add_negative;
     "subtract_positive">:: subtract_positive;
@@ -361,21 +276,6 @@ let tests =
     "geq_true">:: geq_true;
     "geq_false">:: geq_false;
     "geq_equal">:: geq_equal;
-    "eval_rational_int">:: eval_rational_int;
-    "eval_rational_var">:: eval_rational_var;
-    "eval_rational_neg">:: eval_rational_neg;
-    "eval_rational_div_novars">:: eval_rational_div_novars;
-    "eval_rational_div_vars">:: eval_rational_div_vars;
-    "eval_rational_add_novars">:: eval_rational_add_novars;
-    "eval_rational_add_vars">:: eval_rational_add_vars;
-    "eval_rational_mul_novars">:: eval_rational_mul_novars;
-    "eval_rational_mul_vars">:: eval_rational_mul_vars;
-    "eval_rational_exc_div_by_zero">:: eval_rational_exc_div_by_zero;
-    "eval_rational_exc_add_num_args">:: eval_rational_exc_add_num_args;
-    "eval_rational_exc_mul_num_args">:: eval_rational_exc_mul_num_args;
-    "eval_rational_exc_no_def">:: eval_rational_exc_no_def;
-    "eval_rational_exc_multiple_defs">:: eval_rational_exc_multiple_defs;
-    "eval_rational_exc_real_num">:: eval_rational_exc_real_num;
   ]
 
 let () =

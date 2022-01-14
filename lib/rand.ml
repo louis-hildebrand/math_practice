@@ -28,6 +28,11 @@ let get_rand_from_list (options: 'a list): 'a =
   let i = Random.int (List.length options) in
   List.nth options i
 
+let expr_of_rational (r: rational): expr =
+  let (n, d) = split r in
+  if d = 1 then Z n
+  else Div (Z n, Z d)
+
 (* Public functions *)
 let init: unit -> unit =
   Random.self_init
