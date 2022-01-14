@@ -146,6 +146,21 @@ let string_of_expr_neg_div _ =
     "-(2 / (-1))"
     (string_of_expr (Neg (Div (Z 2, Z (-1)))))
 
+let string_of_expr_pow0 _ =
+  assert_equal_string
+    "x^2"
+    (string_of_expr (Pow (Var "x", Z 2)))
+
+let string_of_expr_pow1 _ =
+  assert_equal_string
+    "(-1)^(n + 1)"
+    (string_of_expr (Pow (Z (-1), Add [Var "x"; Z 1])))
+
+let string_of_expr_neg_pow _ =
+  assert_equal_string
+    "-2^x"
+    (string_of_expr (Neg (Pow (Z 2, Var "x"))))
+
 (* string_of_expr: order of operations ------------------------------------------------------------------------------ *)
 (* Add / Add *)
 let string_of_expr_order_add_add _ =
@@ -171,11 +186,29 @@ let string_of_expr_order_add_div _ =
     "1 / 2 + (1 + 2) / (3 + 4)"
     (string_of_expr (Add [Div (Z 1, Z 2); Div (Add [Z 1; Z 2], Add [Z 3; Z 4])]))
 
-(* Mul / Sub *)
-let string_of_expr_order_mul_sub _ =
+(* Add / Exp *)
+let string_of_expr_order_add_pow _ =
+  assert_equal_string
+    "x^2 + (x + 1)^(k + 1)"
+    (string_of_expr (Add [Pow (Var "x", Z 2); Pow (Add [Var "x"; Z 1], Add [Var "k"; Z 1])]))
+
+(* Sub / Mul *)
+let string_of_expr_order_sub_mul _ =
   assert_equal_string
     "-(1 * 2) - (1 - 2) * (-3 + 4)"
     (string_of_expr (Add [Neg (Mul [Z 1; Z 2]); Neg (Mul [Add [Z 1; Z (-2)]; Add [Z (-3); Z 4]])]))
+
+(* Sub / Div *)
+let string_of_expr_order_sub_div _ =
+  assert_equal_string
+    "-(1 / 2) - (1 - 2) / (-3 + 4)"
+    (string_of_expr (Add [Neg (Div (Z 1, Z 2)); Neg (Div (Add [Z 1; Z (-2)], Add [Z (-3); Z 4]))]))
+
+(* Sub / Exp *)
+let string_of_expr_order_sub_pow _ =
+  assert_equal_string
+    "-x^3 - x^2"
+    (string_of_expr (Add [Neg (Pow (Var "x", Z 3)); Neg (Pow (Var "x", Z 2))]))
 
 (* Mul / Mul *)
 let string_of_expr_order_mul_mul _ =
@@ -189,17 +222,29 @@ let string_of_expr_order_mul_div _ =
     "1 / 2 * 1 * 2 / (3 * 4)"
     (string_of_expr (Mul [Div (Z 1, Z 2); Div (Mul [Z 1; Z 2], Mul [Z 3; Z 4])]))
 
-(* Div / Sub *)
-let string_of_expr_order_div_sub _ =
+(* Mul / Exp *)
+let string_of_expr_order_mul_pow _ =
   assert_equal_string
-    "-(1 / 2) - (1 - 2) / (-3 + 4)"
-    (string_of_expr (Add [Neg (Div (Z 1, Z 2)); Neg (Div (Add [Z 1; Z (-2)], Add [Z (-3); Z 4]))]))
+    "x^2 * (3 * k)^(4 * x)"
+    (string_of_expr (Mul [Pow (Var "x", Z 2); Pow (Mul [Z 3; Var "k"], Mul [Z 4; Var "x"])]))
 
 (* Div / Div *)
 let string_of_expr_order_div_div _ =
   assert_equal_string
     "1 / x / (y / 4)"
     (string_of_expr (Div (Div (Z 1, Var "x"), Div (Var "y", Z 4))))
+
+(* Div / Exp *)
+let string_of_expr_order_div_pow _ =
+  assert_equal_string
+    "x^2 / (1 / 2)^(x / 3)"
+    (string_of_expr (Div (Pow (Var "x", Z 2), Pow (Div (Z 1, Z 2), Div (Var "x", Z 3)))))
+
+(* Exp / Exp *)
+let string_of_expr_order_pow_pow _ =
+  assert_equal_string
+    "(2^2)^2^2"
+    (string_of_expr (Pow (Pow (Z 2, Z 2), Pow (Z 2, Z 2))))
 
 (* string_of_expr: exceptions --------------------------------------------------------------------------------------- *)
 let string_of_expr_exc_test0 _ =
@@ -409,15 +454,23 @@ let tests =
     "string_of_expr_div_neg0">:: string_of_expr_div_neg0;
     "string_of_expr_div_neg1">:: string_of_expr_div_neg1;
     "string_of_expr_neg_div">:: string_of_expr_neg_div;
+    "string_of_expr_pow0">:: string_of_expr_pow0;
+    "string_of_expr_pow1">:: string_of_expr_pow1;
+    "string_of_expr_neg_pow">:: string_of_expr_neg_pow;
     "string_of_expr_order_add_add">:: string_of_expr_order_add_add;
     "string_of_expr_order_add_sub">:: string_of_expr_order_add_sub;
     "string_of_expr_order_add_mul">:: string_of_expr_order_add_mul;
     "string_of_expr_order_add_div">:: string_of_expr_order_add_div;
-    "string_of_expr_order_mul_sub">:: string_of_expr_order_mul_sub;
+    "string_of_expr_order_add_pow">:: string_of_expr_order_add_pow;
+    "string_of_expr_order_sub_mul">:: string_of_expr_order_sub_mul;
+    "string_of_expr_order_sub_div">:: string_of_expr_order_sub_div;
+    "string_of_expr_order_sub_pow">:: string_of_expr_order_sub_pow;
     "string_of_expr_order_mul_mul">:: string_of_expr_order_mul_mul;
     "string_of_expr_order_mul_div">:: string_of_expr_order_mul_div;
-    "string_of_expr_order_div_sub">:: string_of_expr_order_div_sub;
+    "string_of_expr_order_mul_pow">:: string_of_expr_order_mul_pow;
     "string_of_expr_order_div_div">:: string_of_expr_order_div_div;
+    "string_of_expr_order_div_pow">:: string_of_expr_order_div_pow;
+    "string_of_expr_order_pow_pow">:: string_of_expr_order_pow_pow;
     "string_of_expr_exc_test0">:: string_of_expr_exc_test0;
     "string_of_expr_exc_test1">:: string_of_expr_exc_test1;
     "eval_int">:: eval_int;
