@@ -2,8 +2,6 @@ open Printf
 
 type rational = int * int
 
-exception NonRational of string
-
 (* Helper functions ------------------------------------------------------------------------------------------------- *)
 (* Computes the greatest common divisor of n and m. *)
 let gcd (n: int) (m: int): int =

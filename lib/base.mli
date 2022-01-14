@@ -25,6 +25,9 @@ exception UndefinedVariable of string
     This exception is raised even if the values are all the same. *)
 exception MultipleDefinitions of string
 
+(** Attempt to evaluate an expression that includes constants other than integers and fractions. *)
+exception NonRational of string
+
 (** Converts the given expression to a string. *)
 val string_of_expr: expr -> string
 

@@ -24,6 +24,7 @@ exception InvalidExpr of string
 exception Undefined of string
 exception UndefinedVariable of string
 exception MultipleDefinitions of string
+exception NonRational of string
 
 (* Helper functions ------------------------------------------------------------------------------------------------- *)
 (* TODO: Add 'distribute' flag to allow for distributing negative sign to arguments in Neg (Add es) *)
