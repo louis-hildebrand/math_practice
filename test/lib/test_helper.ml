@@ -29,7 +29,7 @@ let rec max_width (e: expr): int =
 let rec max_denom (e: expr): int =
   match e with
   | Z _ -> 1
-  | R x -> raise (NonRational (sprintf "max_denom found floating-point number (%g)." x))
+  | R x -> raise (NonRational (sprintf "%.12g" x))
   | Var _ -> 0
   | Div (Z _, Z d) -> d
   | Neg e' -> max_denom e'

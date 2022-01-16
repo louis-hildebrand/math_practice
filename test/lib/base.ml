@@ -432,7 +432,7 @@ let eval_rational_pow_neg_exponent _ =
 
 let eval_rational_pow_neg_base _ =
   assert_equal_rational
-    (new_rational (-3) 1)
+    (new_rational (-2) 1)
     (eval_rational (Pow (Z (-8), Div (Z 1, Z 3))) [])
 
 let eval_rational_pow_zero_zero _ =
@@ -469,7 +469,7 @@ let eval_rational_exc_multiple_defs _ =
 
 let eval_rational_exc_real_num _ =
   assert_raises
-    (NonRational "Floating-point value 2.5 is not an integer or a fraction.")
+    (NonRational "2.5")
     (fun () -> eval_rational (Add [Div (Z 5, Z 2); R 2.5]) [])
 
 let eval_rational_exc_div_by_zero1 _ =
@@ -484,7 +484,7 @@ let eval_rational_exc_pow_neg_base _ =
 
 let eval_rational_exc_pow_irrational _ =
   assert_raises
-    (NonRational "Cannot evaluate 7^(3/2) to a rational value.")
+    (NonRational "2nd root of 7")
     (fun () -> eval_rational (Pow (Var "x", Div (Z 3, Z 2))) [("x", new_rational 7 1)])
 
 (* List and run tests ----------------------------------------------------------------------------------------------- *)

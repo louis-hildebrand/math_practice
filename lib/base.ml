@@ -23,10 +23,9 @@ type expr_context = operation * int (* Parent operation and position (starting a
 
 (* Exceptions ------------------------------------------------------------------------------------------------------- *)
 exception InvalidExpr of string
+exception MultipleDefinitions of string
 exception Undefined
 exception UndefinedVariable of string
-exception MultipleDefinitions of string
-exception NonRational of string
 
 (* Helper functions ------------------------------------------------------------------------------------------------- *)
 (* TODO: Add 'distribute' flag to allow for distributing negative sign to arguments in Neg (Add es) *)
@@ -176,7 +175,7 @@ let rec eval (e: expr) (vals: (string * float) list): float =
 let rec eval_rational (e: expr) (vals: (string * rational) list): rational =
   match e with
   | Z n -> new_rational n 1
-  | R x -> raise (NonRational (sprintf "Floating-point value %g is not an integer or a fraction." x))
+  | R x -> raise (NonRational (string_of_float x))
   | Var name -> 
       let vs = List.map (fun (_, v) -> v) (List.filter (fun (n, _) -> n = name) vals) in
       (match vs with
@@ -197,3 +196,7 @@ let rec eval_rational (e: expr) (vals: (string * rational) list): rational =
       let d = eval_rational e2 vals in
       if d =: (new_rational 0 1) then raise Undefined
       else n /: d
+  | Pow (e1, e2) ->
+      let base = eval_rational e1 vals in
+      let power = eval_rational e2 vals in
+      base ^: power

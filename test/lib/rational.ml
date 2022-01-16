@@ -114,6 +114,14 @@ let divide_exc_div_by_zero _ =
     Division_by_zero
     (fun () -> new_rational 0 1 /: new_rational 0 1)
 
+(* exponent: values ------------------------------------------------------------------------------------------------- *)
+let pow_test _ =
+  todo "Write tests for exponentiation"
+
+(* exponent: exceptions --------------------------------------------------------------------------------------------- *)
+let pow_exc_test _ =
+  todo "Write tests for exponentiation"
+
 (* equal ------------------------------------------------------------------------------------------------------------ *)
 let equal_true_zero _ =
   assert_bool
@@ -254,6 +262,8 @@ let tests =
     "divide_positive">:: divide_positive;
     "divide_negative">:: divide_negative;
     "divide_exc_div_by_zero">:: divide_exc_div_by_zero;
+    "pow_test">:: pow_test;
+    "pow_exc_test">:: pow_exc_test;
     "equal_true_zero">:: equal_true_zero;
     "equal_true_positive">:: equal_true_positive;
     "equal_true_negative">:: equal_true_negative;

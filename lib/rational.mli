@@ -3,6 +3,12 @@
 (** Rational number (numerator and denominator). *)
 type rational
 
+(** Attempt to take an even root of a negative number. *)
+exception Root_negative of int
+
+(** Attempt to evaluate an expression that involves non-rational numbers. *)
+exception NonRational of string
+
 (** Instantiates a rational number. *)
 val new_rational: int -> int -> rational
 
@@ -29,6 +35,9 @@ val ( *: ): rational -> rational -> rational
 
 (** Computes the quotient of rational numbers. *)
 val (/:): rational -> rational -> rational
+
+(** Computes the result of exponentiation, provided the result is rational. *)
+val (^:): rational -> rational -> rational
 
 (** Checks whether two rational numbers are equal in value. *)
 val (=:): rational -> rational -> bool

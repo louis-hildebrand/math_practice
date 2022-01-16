@@ -23,7 +23,7 @@ let (random_consts: rational list) =
     match e with
     | Z (n) -> [new_rational n 1]
     | Div (Z n, Z d) -> [new_rational n d]
-    | R x -> raise (NonRational (sprintf "get_consts found a floating-point value (%g)." x))
+    | R x -> raise (NonRational (sprintf "%.12g" x))
     | Var _ -> []
     | Neg e -> get_consts e
     | Add es

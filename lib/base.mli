@@ -19,15 +19,12 @@ exception InvalidExpr of string
 (** Expression involves an invalid operation (e.g. division by zero). *)
 exception Undefined
 
-(** Attempt to evaluate an expression when some variables were not given a value. *)
-exception UndefinedVariable of string
-
 (** Attempt to evaluate an expression when some variables were given multiple values.
     This exception is raised even if the values are all the same. *)
 exception MultipleDefinitions of string
 
-(** Attempt to evaluate an expression that includes constants other than integers and fractions. *)
-exception NonRational of string
+(** Attempt to evaluate an expression when some variables were not given a value. *)
+exception UndefinedVariable of string
 
 (** Converts the given expression to a string. *)
 val string_of_expr: expr -> string
