@@ -59,12 +59,12 @@ let string_of_expr (e: expr): string =
   let rec string_of_expr' (ctxt: expr_context option) (e: expr): string =
     match e with
     | Z (n) ->
-        if n < 0 && (ctxt != None && ctxt != Some (OAdd, 0) && ctxt != Some (OPow, 1)) then
+        if n < 0 && (ctxt <> None && ctxt <> Some (OAdd, 0) && ctxt <> Some (OPow, 1)) then
           "(" ^ (string_of_int n) ^ ")"
         else
           string_of_int n
     | R x ->
-        if x < 0.0 && (ctxt != None && ctxt != Some (OAdd, 0) && ctxt != Some (OPow, 1)) then
+        if x < 0.0 && (ctxt <> None && ctxt <> Some (OAdd, 0) && ctxt <> Some (OPow, 1)) then
           "(" ^ (string_of_float x) ^ ")"
         else
           string_of_float x

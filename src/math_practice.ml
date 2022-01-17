@@ -108,12 +108,12 @@ let answer_decimal (quiet: bool) (num_questions: int) (sd: int): unit =
   answer_questions quiet num_questions sd generate_decimal_questions evaluator
 
 let subcmd_fraction (quiet: bool) (num_questions: int) (sd: int) (show_answers: bool) (anon_args: string list): unit =
-  if List.length anon_args != 0 then err_unrecognized_args anon_args
+  if List.length anon_args <> 0 then err_unrecognized_args anon_args
   else if show_answers then answer_fraction quiet num_questions sd
   else ask_fraction quiet num_questions sd
 
 let subcmd_decimal (quiet: bool) (num_questions: int) (sd: int) (show_answers: bool) (anon_args: string list): unit =
-  if List.length anon_args != 0 then err_unrecognized_args anon_args
+  if List.length anon_args <> 0 then err_unrecognized_args anon_args
   else if show_answers then answer_decimal quiet num_questions sd
   else ask_decimal quiet num_questions sd
 

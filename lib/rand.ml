@@ -46,7 +46,7 @@ let seed (n: int): unit =
 let choose_next_element (min_depth: int) (max_depth: int) (only_zero: bool) (allowed_ops: operation list) 
     (allowed_consts: constant list): element =
   (* Disallow division if the only allowed constant is 0 *)
-  let allowed_ops = if only_zero then List.filter (fun o -> o != ODiv) allowed_ops else allowed_ops in
+  let allowed_ops = if only_zero then List.filter (fun o -> o <> ODiv) allowed_ops else allowed_ops in
   (* Disallow operations if the maximum depth has been reached *)
   let allowed = if max_depth = 0 then
     List.map (fun c -> Const c) allowed_consts
