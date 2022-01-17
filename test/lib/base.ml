@@ -153,8 +153,13 @@ let string_of_expr_pow0 _ =
 
 let string_of_expr_pow1 _ =
   assert_equal_string
-    "(-1)^(n + 1)"
-    (string_of_expr (Pow (Z (-1), Add [Var "n"; Z 1])))
+    "(-1)^-(n + 1)"
+    (string_of_expr (Pow (Neg (Z 1), Neg (Add [Var "n"; Z 1]))))
+
+let string_of_expr_pow2 _ =
+  assert_equal_string
+    "(-(1 + 3))^z"
+    (string_of_expr (Pow (Neg (Add [Z 1; Z 3]), Var "z")))
 
 let string_of_expr_neg_pow _ =
   assert_equal_string
@@ -525,6 +530,7 @@ let tests =
     "string_of_expr_neg_div">:: string_of_expr_neg_div;
     "string_of_expr_pow0">:: string_of_expr_pow0;
     "string_of_expr_pow1">:: string_of_expr_pow1;
+    "string_of_expr_pow2">:: string_of_expr_pow2;
     "string_of_expr_neg_pow">:: string_of_expr_neg_pow;
     "string_of_expr_order_add_add">:: string_of_expr_order_add_add;
     "string_of_expr_order_add_sub">:: string_of_expr_order_add_sub;
