@@ -14,7 +14,8 @@ let rec depth (e: expr): int =
   | Neg e' -> depth e'
   | Add es
   | Mul es -> 1 + (List.fold_left (fun acc e -> max acc (depth e)) 0 es)
-  | Div (e1, e2) -> 1 + max (depth e1) (depth e2)
+  | Div (e1, e2)
+  | Pow (e1, e2) -> 1 + max (depth e1) (depth e2)
 
 let rec max_width (e: expr): int =
   match e with
@@ -24,7 +25,8 @@ let rec max_width (e: expr): int =
   | Neg e' -> max_width e'
   | Add es
   | Mul es -> List.fold_left (fun acc e -> max acc (max_width e)) (List.length es) es
-  | Div (e1, e2) -> max 2 (max (max_width e1) (max_width e2))
+  | Div (e1, e2) 
+  | Pow (e1, e2) -> max 2 (max (max_width e1) (max_width e2))
 
 let rec max_denom (e: expr): int =
   match e with
@@ -35,7 +37,8 @@ let rec max_denom (e: expr): int =
   | Neg e' -> max_denom e'
   | Add es
   | Mul es -> List.fold_left (fun acc e -> max acc (max_denom e)) 0 es
-  | Div (e1, e2) -> max (max_denom e1) (max_denom e2)
+  | Div (e1, e2)
+  | Pow (e1, e2) -> max (max_denom e1) (max_denom e2)
 
 (* Computes the greatest common divisor of n and m. *)
 let gcd (n: int) (m: int): int =
@@ -60,7 +63,8 @@ let is_simplified (e: expr): bool =
   | Neg _
   | Add _
   | Mul _
-  | Div _ -> false
+  | Div _
+  | Pow _ -> false
 
 (* tabulate origin dest returns the list [origin; origin + 1; ...; dest - 1; dest] *)
 let rec tabulate (origin: int) (dest: int): int list =
@@ -189,4 +193,5 @@ let rec assert_max_decimal_places_expr (n: int) (e: expr): unit =
   | Neg e' -> assert_max_decimal_places_expr n e'
   | Add es
   | Mul es -> List.iter (assert_max_decimal_places_expr n) es
-  | Div (e1, e2) -> assert_max_decimal_places_expr n e1; assert_max_decimal_places_expr n e2
+  | Div (e1, e2)
+  | Pow (e1, e2) -> assert_max_decimal_places_expr n e1; assert_max_decimal_places_expr n e2
