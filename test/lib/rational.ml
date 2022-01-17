@@ -115,12 +115,56 @@ let divide_exc_div_by_zero _ =
     (fun () -> new_rational 0 1 /: new_rational 0 1)
 
 (* exponent: values ------------------------------------------------------------------------------------------------- *)
-let pow_test _ =
-  todo "Write tests for exponentiation"
+let pow_positive_int_negative_int _ =
+  assert_equal_rational
+    (new_rational 1 9)
+    ((new_rational 3 1) ^: (new_rational (-2) 1))
+
+let pow_positive_int_negative_frac _ =
+  assert_equal_rational
+    (new_rational 1 27)
+    ((new_rational 9 1) ^: (new_rational (-3) 2))
+
+let pow_negative_int_negative_frac _ =
+  assert_equal_rational
+    (new_rational 1 16)
+    ((new_rational (-8) 1) ^: (new_rational (-4) 3))
+
+let pow_positive_frac_negative_frac _ =
+  assert_equal_rational
+    (new_rational 8 125)
+    ((new_rational 25 4) ^: (new_rational (-3) 2))
+
+let pow_negative_frac_negative_frac _ =
+  assert_equal_rational
+    (new_rational 9 4)
+    ((new_rational (-8) 27) ^: (new_rational (-2) 3))
 
 (* exponent: exceptions --------------------------------------------------------------------------------------------- *)
-let pow_exc_test _ =
-  todo "Write tests for exponentiation"
+let pow_exc_div_by_zero _ =
+  assert_raises
+    Division_by_zero
+    (fun () -> (new_rational 0 1) ^: (new_rational (-3) 2))
+
+let pow_exc_root_negative _ =
+  assert_raises
+    (Root_negative (-4))
+    (fun () -> (new_rational (-4) 9) ^: (new_rational 1 2))
+
+let pow_exc_irrational0 _ =
+  assert_raises
+    (NonRational "3rd root of 9")
+    (fun () -> (new_rational 9 2) ^: (new_rational 2 3))
+
+let pow_exc_irrational1 _ =
+  assert_raises
+    (NonRational "11th root of 6")
+    (fun () -> (new_rational 6 5) ^: (new_rational 5 11))
+
+let pow_exc_irrational2 _ =
+  assert_raises
+    (NonRational "21st root of 3")
+    (fun () -> (new_rational 4 3) ^: (new_rational (-10) 21))
 
 (* equal ------------------------------------------------------------------------------------------------------------ *)
 let equal_true_zero _ =
@@ -262,8 +306,16 @@ let tests =
     "divide_positive">:: divide_positive;
     "divide_negative">:: divide_negative;
     "divide_exc_div_by_zero">:: divide_exc_div_by_zero;
-    "pow_test">:: pow_test;
-    "pow_exc_test">:: pow_exc_test;
+    "pow_positive_int_negative_int">:: pow_positive_int_negative_int;
+    "pow_positive_int_negative_frac">:: pow_positive_int_negative_frac;
+    "pow_negative_int_negative_frac">:: pow_negative_int_negative_frac;
+    "pow_positive_frac_negative_frac">:: pow_positive_frac_negative_frac;
+    "pow_negative_frac_negative_frac">:: pow_negative_frac_negative_frac;
+    "pow_exc_div_by_zero">:: pow_exc_div_by_zero;
+    "pow_exc_root_negative">:: pow_exc_root_negative;
+    "pow_exc_irrational0">:: pow_exc_irrational0;
+    "pow_exc_irrational1">:: pow_exc_irrational1;
+    "pow_exc_irrational2">:: pow_exc_irrational2;
     "equal_true_zero">:: equal_true_zero;
     "equal_true_positive">:: equal_true_positive;
     "equal_true_negative">:: equal_true_negative;
