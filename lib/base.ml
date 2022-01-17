@@ -24,7 +24,7 @@ type expr_context = operation * int (* Parent operation and position (starting a
 (* Exceptions ------------------------------------------------------------------------------------------------------- *)
 exception InvalidExpr of string
 exception MultipleDefinitions of string
-exception Undefined
+exception Undefined of string * exn option
 exception UndefinedVariable of string
 
 (* Helper functions ------------------------------------------------------------------------------------------------- *)
@@ -161,16 +161,16 @@ let rec eval (e: expr) (vals: (string * float) list): float =
   | Mul _ -> raise (InvalidExpr "Wrong number of arguments for operation Mul.")
   | Div (e1, e2) ->
       let denom = eval e2 vals in
-      if denom = 0.0 then raise Undefined
-      else let numer = eval e1 vals in
-      numer /. denom
+      let numer = eval e1 vals in
+      if denom = 0.0 then raise (Undefined (string_of_expr e, None))
+      else numer /. denom
   | Pow (e1, e2) ->
       let base = eval e1 vals in
       let power = eval e2 vals in
       let result = base ** power in
       (* Handle division by zero, even roots of negative numbers, etc. *)
       if is_finite_num result then result
-      else raise Undefined
+      else raise (Undefined (sprintf "%s evaluated to %F." (string_of_expr e) result, None))
 
 let rec eval_rational (e: expr) (vals: (string * rational) list): rational =
   match e with
@@ -194,9 +194,13 @@ let rec eval_rational (e: expr) (vals: (string * rational) list): rational =
   | Div (e1, e2) ->
       let n = eval_rational e1 vals in
       let d = eval_rational e2 vals in
-      if d =: (new_rational 0 1) then raise Undefined
+      if d =: (new_rational 0 1) then raise (Undefined (string_of_expr e, None))
       else n /: d
   | Pow (e1, e2) ->
       let base = eval_rational e1 vals in
       let power = eval_rational e2 vals in
-      base ^: power
+      try 
+        base ^: power
+      with
+      | Division_by_zero
+      | Root_negative _ as exc -> raise (Undefined (string_of_expr e, Some exc))

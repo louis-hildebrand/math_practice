@@ -335,9 +335,10 @@ let eval_pow_zero_zero _ =
 
 (* eval: exceptions ------------------------------------------------------------------------------------------------- *)
 let eval_exc_div_by_zero0 _ =
+  let e = Div (Z 1, Add [Z 1; Neg (R 0.75); R (-0.25)]) in
   assert_raises
-    Undefined
-    (fun () -> eval (Div (Z 1, Add [Z 1; Neg (R 0.75); R (-0.25)])) [])
+    (Undefined (string_of_expr e, None))
+    (fun () -> eval e [])
 
 let eval_exc_add_num_args _ =
   assert_raises
@@ -360,14 +361,16 @@ let eval_exc_unknown_var1 _ =
     (fun () -> eval (Add [Var "x"; Z 1; Var "y"]) [("x", 1.0); ("y", 2.123); ("y", 2.123)])
 
 let eval_exc_div_by_zero1 _ =
+  let e = Pow (Var "x", Add [Z 1; Z (-3)]) in
   assert_raises
-    Undefined
-    (fun () -> eval (Pow (Var "x", Add [Z 1; Z (-3)])) [("x", 0.0)])
+    (Undefined (sprintf "%s evaluated to infinity." (string_of_expr e), None))
+    (fun () -> eval e [("x", 0.0)])
 
 let eval_exc_even_root_negative _ =
+  let e = Pow (Var "x", Div (Z 1, Var "k")) in
   assert_raises
-    Undefined
-    (fun () -> eval (Pow (Var "x", Div (Z 1, Var "k"))) [("x", -1.5); ("k", 4.0)])
+    (Undefined (sprintf "%s evaluated to nan." (string_of_expr e), None))
+    (fun () -> eval e [("x", -1.5); ("k", 4.0)])
 
 (* eval_rational: values -------------------------------------------------------------------------------------------- *)
 let eval_rational_int _ =
@@ -442,9 +445,10 @@ let eval_rational_pow_zero_zero _ =
 
 (* eval_rational: exceptions ---------------------------------------------------------------------------------------- *)
 let eval_rational_exc_div_by_zero0 _ =
+  let e = Div (Z 1, Add [Z 1; Neg (Z 1)]) in
   assert_raises
-    Undefined
-    (fun () -> eval_rational (Div (Z 1, Add [Z 1; Neg (Z 1)])) [])
+    (Undefined (string_of_expr e, None))
+    (fun () -> eval_rational e [])
 
 let eval_rational_exc_add_num_args _ =
   assert_raises
@@ -473,14 +477,16 @@ let eval_rational_exc_real_num _ =
     (fun () -> eval_rational (Add [Div (Z 5, Z 2); R 2.5]) [])
 
 let eval_rational_exc_div_by_zero1 _ =
+  let e = Pow (Var "x", Add [Z 1; Z (-3)]) in
   assert_raises
-    Undefined
-    (fun () -> eval_rational (Pow (Var "x", Add [Z 1; Z (-3)])) [("x", new_rational 0 1)])
+    (Undefined (string_of_expr e, Some Division_by_zero))
+    (fun () -> eval_rational e [("x", new_rational 0 1)])
 
 let eval_rational_exc_pow_neg_base _ =
+  let e = Pow (Div (Z (-1), Z 2), Div (Z 1, Var "x")) in
   assert_raises
-    Undefined
-    (fun () -> eval_rational (Pow (Div (Z (-1), Z 2), Div (Z 1, Var "x"))) [("x", new_rational 4 1)])
+    (Undefined (string_of_expr e, Some (Root_negative (-1))))
+    (fun () -> eval_rational e [("x", new_rational 4 1)])
 
 let eval_rational_exc_pow_irrational _ =
   assert_raises

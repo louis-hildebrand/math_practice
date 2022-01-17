@@ -16,8 +16,8 @@ type expr =
 (** Expression is badly formed. *)
 exception InvalidExpr of string
 
-(** Expression involves an invalid operation (e.g. division by zero). *)
-exception Undefined
+(** Expression involves an invalid operation (e.g. division by zero). Has a message and a cause. *)
+exception Undefined of string * exn option
 
 (** Attempt to evaluate an expression when some variables were given multiple values.
     This exception is raised even if the values are all the same. *)
