@@ -23,12 +23,13 @@ let (random_consts: rational list) =
     match e with
     | Z (n) -> [new_rational n 1]
     | Div (Z n, Z d) -> [new_rational n d]
-    | R x -> raise (NonRational (sprintf "get_consts found a floating-point value (%g)." x))
+    | R x -> raise (NonRational (sprintf "%.12g" x))
     | Var _ -> []
     | Neg e -> get_consts e
     | Add es
     | Mul es -> List.fold_left (fun acc arg -> acc @ (get_consts arg)) [] es
-    | Div (e1, e2) -> (get_consts e1) @ (get_consts e2)
+    | Div (e1, e2)
+    | Pow (e1, e2) -> (get_consts e1) @ (get_consts e2)
   in
   List.fold_left (fun acc e -> acc @ (get_consts e)) [] (List.map (fun (_, e) -> e) random_exprs)
 
@@ -140,7 +141,8 @@ let (random_consts: float list) =
     | Neg e -> get_consts e
     | Add es
     | Mul es -> List.fold_left (fun acc arg -> acc @ (get_consts arg)) [] es
-    | Div (e1, e2) -> (get_consts e1) @ (get_consts e2)
+    | Div (e1, e2)
+    | Pow (e1, e2) -> (get_consts e1) @ (get_consts e2)
   in
   List.fold_left (fun acc e -> acc @ (get_consts e)) [] (List.map (fun (_, e) -> e) random_exprs)
 

@@ -11,22 +11,20 @@ type expr =
   | Add of expr list   (** e1 + e2 + e3 + ... *)
   | Mul of expr list   (** e1 * e2 * e3 * ... *)
   | Div of expr * expr (** e1 / e2 *)
+  | Pow of expr * expr (** e1^e2 *)
 
 (** Expression is badly formed. *)
 exception InvalidExpr of string
 
-(** Expression involves an invalid operation (e.g. division by zero). *)
-exception Undefined of string
-
-(** Attempt to evaluate an expression when some variables were not given a value. *)
-exception UndefinedVariable of string
+(** Expression involves an invalid operation (e.g. division by zero). Has a message and a cause. *)
+exception Undefined of string * exn option
 
 (** Attempt to evaluate an expression when some variables were given multiple values.
     This exception is raised even if the values are all the same. *)
 exception MultipleDefinitions of string
 
-(** Attempt to evaluate an expression that includes constants other than integers and fractions. *)
-exception NonRational of string
+(** Attempt to evaluate an expression when some variables were not given a value. *)
+exception UndefinedVariable of string
 
 (** Converts the given expression to a string. *)
 val string_of_expr: expr -> string
