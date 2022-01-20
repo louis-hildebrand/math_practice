@@ -161,6 +161,11 @@ let string_of_expr_pow2 _ =
     "(-(1 + 3))^z"
     (string_of_expr (Pow (Neg (Add [Z 1; Z 3]), Var "z")))
 
+let string_of_expr_pow3 _ =
+  assert_equal_string
+    "x^-2 + y^-1.5"
+    (string_of_expr (Add [Pow (Var "x", Z (-2)); Pow (Var "y", R (-1.5))]))
+
 let string_of_expr_neg_pow _ =
   assert_equal_string
     "-2^x"
@@ -531,6 +536,7 @@ let tests =
     "string_of_expr_pow0">:: string_of_expr_pow0;
     "string_of_expr_pow1">:: string_of_expr_pow1;
     "string_of_expr_pow2">:: string_of_expr_pow2;
+    "string_of_expr_pow3">:: string_of_expr_pow3;
     "string_of_expr_neg_pow">:: string_of_expr_neg_pow;
     "string_of_expr_order_add_add">:: string_of_expr_order_add_add;
     "string_of_expr_order_add_sub">:: string_of_expr_order_add_sub;
