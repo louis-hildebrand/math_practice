@@ -52,22 +52,22 @@ let is_finite_num (x: float): bool =
   fpc <> FP_infinite && fpc <> FP_nan
 
 (* Remove the trailing period (e.g. show 3.0 as 3 instead of 3.) *)
-let string_of_float = sprintf "%.12g"
+let string_of_float' = sprintf "%.12g"
 
 (* Public functions ------------------------------------------------------------------------------------------------- *)
 let string_of_expr (e: expr): string =
   let rec string_of_expr' (ctxt: expr_context option) (e: expr): string =
     match e with
     | Z (n) ->
-        if n < 0 && (ctxt <> None && ctxt <> Some (OAdd, 0) && ctxt <> Some (OPow, 1)) then
-          "(" ^ (string_of_int n) ^ ")"
-        else
+        if n >= 0 || ctxt = None || ctxt = Some (OAdd, 0) || ctxt = Some (OPow, 1) then
           string_of_int n
-    | R x ->
-        if x < 0.0 && (ctxt <> None && ctxt <> Some (OAdd, 0) && ctxt <> Some (OPow, 1)) then
-          "(" ^ (string_of_float x) ^ ")"
         else
-          string_of_float x
+          "(" ^ (string_of_int n) ^ ")"
+    | R x ->
+        if x >= 0.0 || ctxt = None || ctxt = Some (OAdd, 0) || ctxt = Some (OPow, 1) then
+          string_of_float' x
+        else
+          "(" ^ (string_of_float' x) ^ ")"
     | Var (name) ->
         name
     | Neg (Z n) ->
@@ -175,7 +175,7 @@ let rec eval (e: expr) (vals: (string * float) list): float =
 let rec eval_rational (e: expr) (vals: (string * rational) list): rational =
   match e with
   | Z n -> new_rational n 1
-  | R x -> raise (NonRational (string_of_float x))
+  | R x -> raise (NonRational (string_of_float' x))
   | Var name -> 
       let vs = List.map (fun (_, v) -> v) (List.filter (fun (n, _) -> n = name) vals) in
       (match vs with
